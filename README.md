@@ -6,20 +6,24 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 
 | | |
 | --- | --- |
-| Version | 2.4 |
+| Version | 2.5 |
+| Release | [v2.5](https://github.com/iinze0/bare/releases/tag/v2.5) |
 | OS | Windows 10 and Windows 11 |
 | Run | Right-click `bare.bat`, run as administrator |
 | Script | `bare.ps1`, same folder as the bat |
+| Saved ticks | `bare-ticks.txt`, written on apply |
 | Log | `bare-log.txt` next to the script |
 | Network | None, unless you tick OneDrive or the browser swap |
 
 ## Use
 
-1. Download the repo zip. Do not pipe it into `iex`.
-2. Right-click `bare.bat` and run as administrator.
-3. Type a number to toggle that line.
-4. `p` fills performance, `g` fills gaming, `v` fills privacy. Presets only tick boxes.
-5. `a` applies. Restart.
+1. Download [v2.5](https://github.com/iinze0/bare/releases/tag/v2.5), or the repo zip. Do not pipe it into `iex`.
+2. Keep `bare.bat` and `bare.ps1` in the same folder.
+3. Right-click `bare.bat` and run as administrator.
+4. Type a number to toggle that line.
+5. `p` fills performance, `g` fills gaming, `v` fills privacy. Presets only tick boxes.
+6. `a` applies and saves the ticks. Restart.
+7. `c` scans. `s` saves without applying. `l` reloads the last save.
 
 Edge uninstall, IPv6, OneDrive, Windows Update, Defender, and idle-off ask for `yes` again.
 

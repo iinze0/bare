@@ -1,11 +1,11 @@
 # Options
 
-Version 2.4. Numbers toggle. `a` applies.
+Version 2.5. Numbers toggle. `a` applies and writes `bare-ticks.txt`.
 
-| # | What apply does now |
+| # | What apply does |
 | --- | --- |
 | 1 | Removes and deprovisions Clipchamp, Bing apps, Get Help, Office hub, Solitaire, People, To Do, Maps, Xbox overlays, Phone Link, Groove, Movies and TV, Cortana, Dev Home, Outlook, Teams, Sticky Notes, Voice Recorder, Copilot. Store and Edge stay. |
-| 2 | All listed suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
+| 2 | Suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
 | 3 | Compatibility appraiser, ProgramDataUpdater, StartupAppTask, CEIP, Maps, feedback, disk diagnostics, error reporting, WinSAT, family safety. |
 | 4 | Telemetry policy 0, advertising id, activity feed publish and upload, location, Bing search, Cortana, settings sync. |
 | 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. |
@@ -25,4 +25,4 @@ Version 2.4. Numbers toggle. `a` applies.
 | 19 | wuauserv disabled. Asks for yes. |
 | 20 | Defender real-time off. Asks for yes. Tamper Protection may block it. |
 
-Presets are unchanged: `p` ticks 1, 2, 3, 5, 6, 7, 8, 9, 11, 12. `g` ticks 1, 2, 3, 8, 9, 11, 12. `v` ticks 1, 2, 3, 4, 5, 6.
+`c` prints the active power plan and the start type of DiagTrack, SysMain, WSearch, XblGameSave, bthserv, Spooler, wuauserv, and WinDefend. It also says whether the Edge folder is present.

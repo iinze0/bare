@@ -1,6 +1,7 @@
-# bare 2.4
+# bare 2.5
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
+$TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
 function Write-Log([string]$msg) { Add-Content -Path $Log -Value ('{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg); Write-Host $msg }
 function Assert-Admin { $p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent()); if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { Write-Host 'Not running as administrator.'; exit 1 } }
 function Set-Dword([string]$path, [string]$name, [int]$value) { if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }; New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null }
@@ -10,6 +11,8 @@ $labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, t
 function Show-Opts { $i=1; foreach($k in $opts.Keys){ Write-Host ('{0,2}  [{1}]  {2}' -f $i, $(if($opts[$k]){'ON '}else{'off'}), $labels[$k]); $i++ } }
 function Invoke-Key([int]$n){ $keys=@($opts.Keys); if($n -ge 1 -and $n -le $keys.Count){ $opts[$keys[$n-1]] = -not $opts[$keys[$n-1]] } }
 function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
+function Save-Ticks { $on = @($opts.Keys | Where-Object { $opts[$_] }); Set-Content -Path $TickFile -Value ($on -join ','); Write-Log "Saved ticks: $($on -join ', ')" }
+function Load-Ticks { if (-not (Test-Path $TickFile)) { Write-Host 'No saved ticks.'; return }; foreach($k in @($opts.Keys)){ $opts[$k]=$false }; foreach($k in ((Get-Content $TickFile -Raw) -split ',')){ $name=$k.Trim(); if($opts.Contains($name)){ $opts[$name]=$true } }; Write-Log 'Loaded saved ticks.' }
 function Remove-InboxApps {
   $names = @('Clipchamp.Clipchamp','Microsoft.BingNews','Microsoft.BingWeather','Microsoft.BingSearch','Microsoft.GetHelp','Microsoft.Getstarted','Microsoft.MicrosoftOfficeHub','Microsoft.MicrosoftSolitaireCollection','Microsoft.MixedReality.Portal','Microsoft.People','Microsoft.Todos','Microsoft.WindowsFeedbackHub','Microsoft.WindowsMaps','Microsoft.Xbox.TCUI','Microsoft.XboxGameOverlay','Microsoft.XboxGamingOverlay','Microsoft.XboxIdentityProvider','Microsoft.XboxSpeechToTextOverlay','Microsoft.YourPhone','Microsoft.ZuneMusic','Microsoft.ZuneVideo','MicrosoftCorporationII.MicrosoftFamily','MicrosoftCorporationII.QuickAssist','Microsoft.549981C3F5F10','Microsoft.Windows.DevHome','Microsoft.OutlookForWindows','Microsoft.WindowsAlarms','MicrosoftTeams','MSTeams','Microsoft.GamingApp','Microsoft.Windows.NarratorQuickStart','Microsoft.MicrosoftStickyNotes','Microsoft.WindowsSoundRecorder','Microsoft.Windows.Copilot')
   foreach ($name in $names) {
@@ -37,10 +40,20 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setactive $guid | Out-Null
   Write-Log 'CPU plan set.'
 }
+function Invoke-Scan {
+  Write-Host (powercfg /getactivescheme)
+  foreach ($svc in @('DiagTrack','SysMain','WSearch','XblGameSave','bthserv','Spooler','wuauserv','WinDefend')) {
+    try { $st = (Get-Service -Name $svc -ErrorAction Stop).StartType } catch { $st = 'missing' }
+    Write-Host ('{0,-16} {1}' -f $svc, $st)
+  }
+  Write-Host ("Edge folder: {0}" -f (Test-Path (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application')))
+  if (Test-Path $TickFile) { Write-Host ("Saved ticks: {0}" -f (Get-Content $TickFile -Raw)) }
+}
 function Invoke-Apply {
-  Write-Log 'bare 2.4 apply'
+  Write-Log 'bare 2.5 apply'
   Write-Host 'Selected:'
   foreach ($k in $opts.Keys) { if ($opts[$k]) { Write-Host "  $k" } }
+  Save-Ticks
   try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
@@ -109,7 +122,7 @@ function Invoke-Apply {
     if ($id -and (Get-Command winget -ErrorAction SilentlyContinue)) {
       winget install --id $id --accept-package-agreements --accept-source-agreements
       if ($LASTEXITCODE -eq 0 -and (Read-Host 'Uninstall Edge? Type yes') -eq 'yes') {
-        $setup = Get-ChildItem -Path (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application') -Recurse -Filter setup.exe -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\Installer\setup.exe$' } | Select-Object -First 1
+        $setup = Get-ChildItem -Path (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application') -Recurse -Filter setup.exe -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\\Installer\\setup.exe$' } | Select-Object -First 1
         if ($setup) { & $setup.FullName --uninstall --system-level --force-uninstall --verbose-logging; Write-Log 'Edge uninstall finished.' } else { Write-Log 'Edge setup.exe not found.' }
       }
     } else { Write-Log 'Browser skipped.' }
@@ -121,18 +134,23 @@ function Invoke-Apply {
   Write-Host 'Restart to finish.'
 }
 Assert-Admin
-Write-Log 'bare 2.4 started'
+if (Test-Path $TickFile) { Load-Ticks }
+Write-Log 'bare 2.5 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 2.4'
+  Write-Host 'bare 2.5'
   Show-Opts
-  Write-Host 'p performance   g gaming   v privacy   a apply   0 exit'
+  Write-Host 'p performance   g gaming   v privacy'
+  Write-Host 'a apply   s save   l load   c scan   0 exit'
   $choice = Read-Host 'Choose'
   switch ($choice) {
     'p' { Set-Preset 'perf' }
     'g' { Set-Preset 'game' }
     'v' { Set-Preset 'priv' }
     'a' { Invoke-Apply }
+    's' { Save-Ticks }
+    'l' { Load-Ticks }
+    'c' { Invoke-Scan }
     '0' { break }
     default { if ($choice -match '^\d+$') { Invoke-Key ([int]$choice) } }
   }

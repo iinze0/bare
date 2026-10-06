@@ -1,7 +1,7 @@
 # Version
 
-bare 2.4
+bare 2.5
 
-Release files: `bare.bat` and `bare.ps1` in the same folder. The bat only elevates and runs the script beside it. It does not download code.
+Release: [v2.5](https://github.com/iinze0/bare/releases/tag/v2.5)
 
-Log: `bare-log.txt` next to the script.
+`bare.bat` elevates and runs `bare.ps1`. Apply saves the ticked names to `bare-ticks.txt`. Next launch loads them. `c` scans services. `s` saves. `l` loads.
