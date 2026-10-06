@@ -1,9 +1,15 @@
 # Left alone
 
-Defender, Firewall, Windows Update, Edge, Store, sign-in, audio endpoint, network, DHCP.
+Even option 3 does not change:
 
-No IMOD register writes. No timer-resolution driver. No Edge removal. No IPv6 disable. No Nvidia service disable.
+- Windows Defender and Firewall
+- Windows Update (`wuauserv`)
+- Edge, the Store, sign-in
+- Audio endpoint on the gaming profile (performance does not disable Audiosrv either)
+- Network, DHCP, TCP stack, IPv6
+- Nvidia and AMD driver services
+- Print spooler in 2.0 (1.1 disabled it; 2.0 does not)
+- Bluetooth on the gaming profile
+- Drivers, IMOD registers, timer-resolution hacks
 
-Gaming profile also leaves Bluetooth and Xbox services on.
-
-Idle off is opt-in. A 100% minimum already stops the plan from throttling the chip down.
+AllowTelemetry is set to 1, not 0. 0 is the policy some tools use to cut security telemetry. bare does not.
