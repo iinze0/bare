@@ -1,7 +1,7 @@
 # Version
 
-bare 3.4
+bare 3.5
 
-Release: [v3.4](https://github.com/iinze0/bare/releases/tag/v3.4)
+Release: [v3.5](https://github.com/iinze0/bare/releases/tag/v3.5)
 
-The CPU plan is activated again after the late power settings, so boost policy and hybrid policy actually apply. Revert now clears priority separation, power throttling, the overlay key, Nagle, prefetch, memory compression, and dynamic tick. Scan prints prefetch and priority separation.
+Revert now also restores NTFS last-access and the NTFS cache, and clears Find My Device, clipboard, and inking policies. Apply writes `bare-last.txt` with the ticks it ran. Dry run mentions the temp and startup confirms.

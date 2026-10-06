@@ -1,7 +1,8 @@
-# bare 3.4
+# bare 3.5
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
+$Last = Join-Path $PSScriptRoot 'bare-last.txt'
 function Write-Log([string]$msg) { Add-Content -Path $Log -Value ('{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg); Write-Host $msg }
 function Assert-Admin { $p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent()); if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { Write-Host 'Not running as administrator.'; exit 1 } }
 function Set-Dword([string]$path, [string]$name, [int]$value) { if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }; New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null }
@@ -130,7 +131,7 @@ function Invoke-Scan {
 function Invoke-Dry {
   Write-Host 'Dry run. Nothing will be written.'
   foreach ($k in $opts.Keys) { if ($opts[$k]) { Write-Host "  would apply $k - $($labels[$k])" } }
-  if ($opts.idle -or $opts.ipv6 -or $opts.onedrive -or $opts.browser -or $opts.updates -or $opts.defender) { Write-Host 'Confirm prompts would still be asked on a real apply.' }
+  if ($opts.idle -or $opts.temp -or $opts.startup -or $opts.ipv6 -or $opts.onedrive -or $opts.browser -or $opts.updates -or $opts.defender) { Write-Host 'Confirm prompts would still be asked on a real apply.' }
 }
 function Invoke-Revert {
   Write-Host 'Revert puts services back and clears policies this script sets. Removed Store apps are not restored.'
@@ -151,6 +152,11 @@ function Invoke-Revert {
   try { Enable-MMAgent -MemoryCompression -ErrorAction SilentlyContinue; Enable-MMAgent -PageCombining -ErrorAction SilentlyContinue } catch {}
   bcdedit /deletevalue disabledynamictick 2>$null | Out-Null
   bcdedit /deletevalue useplatformtick 2>$null | Out-Null
+  fsutil behavior set disablelastaccess 0 | Out-Null
+  fsutil behavior set memoryusage 0 | Out-Null
+  foreach ($name in @('AllowFindMyDevice','AllowClipboardHistory','AllowCrossDeviceClipboard')) { Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' -Name $name -ErrorAction SilentlyContinue }
+  Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice' -Name AllowFindMyDevice -ErrorAction SilentlyContinue
+  Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\InputPersonalization' -Name AllowInputPersonalization -ErrorAction SilentlyContinue
   Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -ErrorAction SilentlyContinue | ForEach-Object {
     Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -ErrorAction SilentlyContinue
@@ -158,13 +164,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.4 apply'
+  Write-Log 'bare 3.5 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.4 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.5 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -284,15 +290,17 @@ function Invoke-Apply {
   $bad = @(Select-String -Path $Log -Pattern 'unchanged|Could not|skipped|failed' -ErrorAction SilentlyContinue | Select-Object -Last 8)
   Write-Log "Apply finished. $($picked.Count) ticks."
   if ($bad) { Write-Host 'Recent log warnings:'; $bad | ForEach-Object { Write-Host $_.Line } }
+  Set-Content -Path $Last -Value ("{0}  ticks={1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), ($picked -join ','))
   Write-Host "Log: $Log"
+  Write-Host "Last run: $Last"
   Write-Host 'Restart to finish.'
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.4 started'
+Write-Log 'bare 3.5 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.4'
+  Write-Host 'bare 3.5'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'

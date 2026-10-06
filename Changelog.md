@@ -1,11 +1,11 @@
 # Changelog
 
+## 3.5
+
+- Revert restores NTFS last-access updates and the default NTFS cache, and clears Find My Device, clipboard, and inking policies.
+- Apply writes `bare-last.txt` with the time and the ticks it ran.
+- Dry run warns about the temp and startup confirms.
+
 ## 3.4
 
-- CPU settings written after the first plan switch are applied again. Before this, boost policy and hybrid policy could sit unused until the next manual plan change.
-- Revert clears priority separation, power throttling, multiplane overlay, Nagle, prefetch, memory compression, and dynamic tick.
-- Scan prints EnablePrefetcher and Win32PrioritySeparation.
-
-## 3.3
-
-- Privacy tick expanded. Camera and microphone stay.
+- Late CPU settings are applied. Revert clears priority, overlay, Nagle, prefetch, and dynamic tick.
