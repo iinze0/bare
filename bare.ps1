@@ -1,4 +1,4 @@
-# bare: stop optional background work from using CPU. Leave boot, update, and Defender alone.
+# bare: quiet background by default, insane clocks on option 7. Boot, Update, and Defender stay.
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 
@@ -27,14 +27,22 @@ $AppPatterns = @(
     'Microsoft.ZuneMusic','Microsoft.ZuneVideo','MicrosoftCorporationII.MicrosoftFamily',
     'MicrosoftCorporationII.QuickAssist','Microsoft.549981C3F5F10','Microsoft.Windows.DevHome',
     'Microsoft.OutlookForWindows','Microsoft.WindowsAlarms','MicrosoftTeams','MSTeams',
-    'Microsoft.GamingApp','Microsoft.Windows.NarratorQuickStart'
+    'Microsoft.GamingApp','Microsoft.Windows.NarratorQuickStart','Microsoft.MicrosoftStickyNotes',
+    'Microsoft.WindowsSoundRecorder','Microsoft.ScreenSketch'
 )
 
-# Optional. Manual so Windows can still start them. Not deleted.
 $ManualServices = @(
     'DiagTrack','dmwappushservice','DoSvc','SysMain','WSearch','WerSvc',
     'XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc',
     'MapsBroker','Fax','RetailDemo','RemoteRegistry','PhoneSvc','WalletService','lfsvc','PcaSvc'
+)
+
+# Extra. Disabled, not deleted. Skip audio, network, update, defender, print.
+$InsaneServices = @(
+    'SysMain','WSearch','WerSvc','DiagTrack','dmwappushservice','DoSvc',
+    'XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc',
+    'MapsBroker','Fax','RetailDemo','RemoteRegistry','PhoneSvc','WalletService','lfsvc','PcaSvc',
+    'TabletInputService','WbioSrvc','wisvc','WorkFolders','SharedAccess','PrintNotify','Spooler','bthserv'
 )
 
 $Tasks = @(
@@ -45,7 +53,14 @@ $Tasks = @(
     '\Microsoft\Windows\Maps\MapsUpdateTask',
     '\Microsoft\Windows\Feedback\Siuf\DmClient',
     '\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector',
-    '\Microsoft\Windows\Windows Error Reporting\QueueReporting'
+    '\Microsoft\Windows\Windows Error Reporting\QueueReporting',
+    '\Microsoft\Windows\Application Experience\StartupAppTask',
+    '\Microsoft\Windows\Autochk\Proxy',
+    '\Microsoft\Windows\Diagnosis\Scheduled',
+    '\Microsoft\Windows\DiskFootprint\Diagnostics',
+    '\Microsoft\Windows\Maintenance\WinSAT',
+    '\Microsoft\Windows\CloudExperienceHost\CreateObjectTask',
+    '\Microsoft\Windows\Shell\FamilySafetyMonitor'
 )
 
 function New-RestorePoint {
@@ -106,6 +121,25 @@ function Disable-CopilotButton {
     Write-Log 'Copilot button and consumer Copilot policy set. Edge was not removed.'
 }
 
+function Set-PowerPlan {
+    $ultimate = 'e9a42b02-d5df-448d-aa00-03f14749eb61'
+    powercfg -duplicatescheme $ultimate 2>$null | Out-Null
+    $list = powercfg /list
+    if ($list -match $ultimate) {
+        powercfg /setactive $ultimate | Out-Null
+        Write-Log 'Ultimate performance plan active.'
+        return $ultimate
+    }
+    $high = '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'
+    if ($list -match $high) {
+        powercfg /setactive $high | Out-Null
+        Write-Log 'High performance plan active.'
+        return $high
+    }
+    Write-Log 'No extra power scheme installed.'
+    return $null
+}
+
 function Set-BackgroundQuiet {
     foreach ($svc in $ManualServices) {
         try {
@@ -120,7 +154,6 @@ function Set-BackgroundQuiet {
         schtasks /Change /TN $task /DISABLE 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) { Write-Log "Task disabled: $task" } else { Write-Log "Task skipped: $task" }
     }
-    # Game DVR records in the background. Game Mode itself stays available.
     Set-Dword 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR' 0
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
@@ -130,20 +163,8 @@ function Set-BackgroundQuiet {
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarAnimations' 0
     Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name 'MinAnimate' -Value '0' -ErrorAction SilentlyContinue
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 1
-    Write-Log 'Game DVR off, background Store apps blocked, animations off. Telemetry floor left at 1.'
-
-    $ultimate = 'e9a42b02-d5df-448d-aa00-03f14749eb61'
-    powercfg -duplicatescheme $ultimate 2>$null | Out-Null
-    $list = powercfg /list
-    if ($list -match $ultimate) {
-        powercfg /setactive $ultimate | Out-Null
-        Write-Log 'Ultimate performance plan active. CPU not parked by Balanced.'
-    } elseif ($list -match '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c') {
-        powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c | Out-Null
-        Write-Log 'High performance plan active. Ultimate scheme not on this edition.'
-    } else {
-        Write-Log 'No extra power scheme installed. Plan unchanged.'
-    }
+    Write-Log 'Game DVR off, background Store apps blocked, animations off.'
+    Set-PowerPlan | Out-Null
 }
 
 function Set-ExplorerPrefs {
@@ -153,18 +174,50 @@ function Set-ExplorerPrefs {
     Write-Log 'Explorer: extensions on, hidden files on, This PC as start.'
 }
 
+function Set-Insane {
+    Write-Log 'INSANE pass. Heat, fan noise, and a few features will get worse. Boot, Defender, and Windows Update stay.'
+    foreach ($svc in $InsaneServices) {
+        try {
+            Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
+            Write-Log "$svc disabled."
+        } catch {
+            Write-Log "$svc not disabled: $($_.Exception.Message)"
+        }
+    }
+    $guid = Set-PowerPlan
+    if ($guid) {
+        powercfg /setacvalueindex $guid SUB_PROCESSOR PROCTHROTTLEMIN 100 | Out-Null
+        powercfg /setacvalueindex $guid SUB_PROCESSOR PROCTHROTTLEMAX 100 | Out-Null
+        powercfg /setacvalueindex $guid SUB_PROCESSOR CPMINCORES 100 | Out-Null
+        powercfg /setacvalueindex $guid SUB_SLEEP STANDBYIDLE 0 | Out-Null
+        powercfg /setactive $guid | Out-Null
+        Write-Log 'CPU min and max at 100%. Core parking off. Sleep idle off on AC.'
+    }
+    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'NetworkThrottlingIndex' 0xffffffff
+    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'SystemResponsiveness' 0
+    Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' 'DisablePagingExecutive' 1
+    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Serialize' 'StartupDelayInMSec' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' 'VisualFXSetting' 2
+    powercfg -h off | Out-Null
+    Write-Log 'Network throttling index maxed, startup delay 0, visual effects performance, hibernate off.'
+    Write-Log 'Print spooler and Bluetooth were disabled. Turn them back on in services.msc if you need them.'
+    Write-Log 'Insane pass done. Restart. If a game stutters, System Restore.'
+}
+
 Assert-Admin
 Write-Log 'bare started.'
 
 while ($true) {
     Write-Host ''
-    Write-Host 'bare  -  keep the CPU for what you run, not for Windows junk'
-    Write-Host '1  Full pass (restore point, apps, ads, background CPU pass)'
+    Write-Host 'bare  -  CPU for what you run'
+    Write-Host '1  Full pass (restore point, apps, ads, background)'
     Write-Host '2  Inbox apps only'
     Write-Host '3  Ads and tips only'
     Write-Host '4  Copilot button and policy only'
     Write-Host '5  Explorer preferences'
-    Write-Host '9  Background CPU pass only'
+    Write-Host '7  INSANE  (option 1, then clocks at 100%, extra services off)'
+    Write-Host '9  Background only'
     Write-Host '8  Restore point only'
     Write-Host '0  Exit'
     $choice = Read-Host 'Choose'
@@ -174,6 +227,20 @@ while ($true) {
         '3' { Disable-AdsAndTips }
         '4' { Disable-CopilotButton }
         '5' { Set-ExplorerPrefs }
+        '7' {
+            $answer = Read-Host 'Insane uses more heat and disables print and Bluetooth. Type yes'
+            if ($answer -eq 'yes') {
+                New-RestorePoint
+                Remove-InboxApps
+                Disable-AdsAndTips
+                Disable-CopilotButton
+                Set-BackgroundQuiet
+                Set-ExplorerPrefs
+                Set-Insane
+            } else {
+                Write-Host 'Cancelled.'
+            }
+        }
         '9' { Set-BackgroundQuiet }
         '8' { New-RestorePoint }
         '0' { break }

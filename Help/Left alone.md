@@ -1,13 +1,10 @@
 # Left alone
 
-These stay on so the machine still boots, updates, and plays games:
+Even option 7 does not touch:
 
 - Windows Defender and Firewall
 - Windows Update
-- Edge and the Microsoft Store
-- OneDrive uninstall (not run)
-- Audio, network, DHCP, and the print spooler
-- Any service required to sign in or boot
-- Drivers, timer resolution, IMOD, and Device Manager
+- Edge, Store, sign-in, audio, network, DHCP
+- Drivers, IMOD, timer-resolution hacks
 
-Windows Search being manual makes file search slower. Xbox Game Bar will not be sitting in the background. Store apps will not refresh behind other windows.
+Insane does disable print and Bluetooth. Turn `Spooler` and `bthserv` back to Manual in services.msc if you need them.

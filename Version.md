@@ -1,5 +1,5 @@
 # Version
 
-bare 1.0
+bare 1.1
 
-Windows 10 and Windows 11. Run `bare.cmd` as administrator.
+Option 1 full pass. Option 7 insane. Windows 10 and 11. Run `bare.cmd` as administrator.
