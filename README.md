@@ -1,70 +1,51 @@
 # bare
 
-Windows menu that stops optional background work from using the CPU. Run as administrator. Made by iinze0.
+bare is the all-in-one Windows cleanup tool, made to stop telemetry, inbox apps, and optional background work from using the CPU you paid for. The point is a quieter machine, not a broken one. Defender, Windows Update, Edge, and sign-in stay on.
 
-```powershell
-.\bare.cmd
-```
+Made by iinze0.
 
-Option 1 is the full pass. It makes a restore point first, then does everything below. A log is written to `bare-log.txt`.
+# Important
 
-## What it does
+Run bare on Windows 10 or Windows 11, as administrator. A stock install is the safest place to start, after drivers are already in. Option 1 makes a restore point before it changes anything.
 
-Removes these inbox apps for all users, and stops Windows from reinstalling them for new users:
+This is not an extreme wipe. Services are set to manual, not deleted. If a feature needs one later, Windows can still start it. Read the [left alone list](Help/Left%20alone.md) before you run it.
 
-- Clipchamp, News, Weather, Bing search
-- Get Help, Get Started, Office hub, Solitaire, Mixed Reality, People, To Do
-- Feedback Hub, Maps, Phone Link, Groove Music, Movies & TV, Family, Quick Assist
-- Cortana, Dev Home, Outlook for Windows, Alarms, Teams, Xbox app and Xbox overlays, Narrator quick start
+# Transparency
 
-Turns off ads and suggestions:
+bare does not download tools, scripts, or extra programs. Everything it changes is in `bare.ps1` in this repo.
 
-- Start menu recommendations
-- Settings tips and suggested apps
-- Consumer features policy (preinstalled suggestions)
-- Widgets news and interests
-- Sync provider notifications
+**Logs:**
 
-Turns off Copilot:
+A local log is written next to the script at `bare-log.txt`. Nothing is uploaded.
 
-- Taskbar Copilot button
-- Windows Copilot policy
-- Does not uninstall Edge
+# Usage
 
-Stops optional background CPU use. Services are set to manual and stopped, not deleted:
+1. Download this repo, or copy `bare.cmd` and `bare.ps1` to a folder.
+2. Right-click `bare.cmd` and run it as administrator.
+3. Choose `1` for the full pass. Restart when it finishes.
 
-- Connected User Experiences and Telemetry (`DiagTrack`)
-- WAP push message routing (`dmwappushservice`)
-- Delivery Optimization (`DoSvc`)
-- SysMain
-- Windows Search (`WSearch`)
-- Windows Error Reporting (`WerSvc`)
-- Xbox auth, game save, game input, and Xbox networking
-- Maps, Fax, Retail Demo, Remote Registry, Phone, Wallet, Geolocation, Program Compatibility Assistant
+# What it does
 
-Disables these scheduled tasks:
+Full list: [What bare does](Help/What%20it%20does.md)
 
-- Microsoft Compatibility Appraiser
-- ProgramDataUpdater
-- Customer Experience Improvement Program (Consolidator and UsbCeip)
-- Maps update
-- Feedback DmClient
-- Disk diagnostic data collector
-- Windows Error Reporting queue
+Short version:
 
-Other CPU and UI cuts:
+- Removes inbox apps (Clipchamp, News, Solitaire, Xbox overlays, Teams, and the rest of that list)
+- Turns off ads, tips, start recommendations, and widgets news
+- Turns off the Copilot button and Copilot policy. Does not remove Edge
+- Sets optional services to manual: telemetry, delivery optimization, SysMain, Windows Search, error reporting, Xbox, Maps, Fax, Retail Demo
+- Disables feedback, compatibility, and Maps scheduled tasks
+- Turns off Game DVR, background Store apps, transparency, and taskbar animations
+- Switches to Ultimate performance if this edition has it, otherwise High performance
 
-- Game DVR and background capture off. Game Mode is not removed.
-- Store apps not allowed to run in the background
-- Transparency and taskbar animations off
-- Ultimate performance power plan if this Windows edition has it, otherwise High performance. Balanced is not deleted.
-- File extensions shown, hidden files shown, Explorer opens to This PC
+# Help
 
-## What it does not do
+[What it does](Help/What%20it%20does.md) | Every app, service, and task.
 
-- Does not turn off Defender, Firewall, or Windows Update
-- Does not remove Edge, the Store, OneDrive, audio, network, or the print spooler
-- Does not delete services or files in System32
-- Does not change drivers, timers, or IMOD
+[Left alone](Help/Left%20alone.md) | What bare will not touch, and why.
 
-Search is slower after Windows Search is manual. Xbox Game Bar will not be running. Store apps will not refresh in the background. Undo is the restore point from option 1.
+[Revert](Help/Revert.md) | How to undo a pass.
+
+[Changelog](Changelog.md) | What changed.
+
+[Version](Version.md) | Current version.
