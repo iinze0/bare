@@ -1,7 +1,17 @@
 # Left alone
 
-Defender, Firewall, Windows Update, sign-in, audio, network, Nvidia and AMD services.
+Not in `bare.ps1` at all:
 
-Edge stays unless you use option 7, or option 6 and confirm the swap.
+- IMOD or xHCI register writes
+- Nvidia and AMD service disables
+- Wi-Fi, VPN, and network stack wipes
+- Timer-resolution drivers
+- Priority separation registry edits
+- Microsoft account removal
+- Store removal
+- Audio service changes
+- Print and Bluetooth, unless you tick 14 or 15
+- Edge, unless you tick 18 and confirm twice
+- Defender and Windows Update, unless you tick 19 or 20 and confirm
 
-Gaming still forces Bluetooth, audio, and Xbox services on.
+Sign-in is not removed. DHCP is not disabled.

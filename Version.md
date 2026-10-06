@@ -2,4 +2,6 @@
 
 bare 2.2
 
-Toggle a number. `p` `g` `v` fill a preset. `a` applies.
+Windows 10 and 11. Administrator.
+
+Numbers toggle. `p` `g` `v` fill presets. `a` applies. `0` exits.

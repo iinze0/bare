@@ -1,27 +1,27 @@
-# Browser and Edge
+# Browser
 
-Option 7, and the end of option 6, ask which browser to install.
+Option 18 asks:
 
-- 1 installs `Mozilla.Firefox` with winget
-- 2 installs `Brave.Brave` with winget
-- 3 installs nothing
+- 1 winget install Mozilla.Firefox
+- 2 winget install Brave.Brave
+- 3 skip
 
-Edge is uninstalled only after that install returns success, and only if you type `yes`.
+If winget is missing, or the install exit code is not 0, Edge is not removed.
 
-The uninstall runs Edge's own installer:
+If the install succeeded, a second prompt asks before this command:
 
 ```text
 setup.exe --uninstall --system-level --force-uninstall --verbose-logging
 ```
 
-The path is `%ProgramFiles(x86)%\Microsoft\Edge\Application\<version>\Installer\setup.exe`.
+The file is searched under `%ProgramFiles(x86)%\Microsoft\Edge\Application\*\Installer\setup.exe`.
 
-In the EEA, Edge can also be removed from Settings, Apps. Outside the EEA the Settings button is often greyed out, which is why the script uses setup.exe.
+Outside the EEA, Settings often greys out Edge uninstall. That is why the script uses setup.exe. Widgets and some Windows web links can break.
 
-Removing Edge can break Widgets, some Start-menu web links, and any app that opens links through Edge. Reinstall with:
+Put Edge back with:
 
 ```text
 winget install --id XPFFTQ037JWMHS
 ```
 
-Performance and gaming do not uninstall Edge.
+Options 1 through 16 do not remove Edge.
