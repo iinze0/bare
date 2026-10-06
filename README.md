@@ -1,37 +1,32 @@
 # bare
 
-All-in-one Windows cleanup menu. Strips inbox apps, ads, tips, and optional telemetry. Leaves Windows Update, Defender, Edge, the Store, and sign-in working.
+All-in-one Windows menu. Goal: stop inbox apps, ads, and optional background work from using the CPU you paid for. Windows Update, Defender, networking, audio, and sign-in stay on.
 
 Windows 10/11. Run as administrator. Made by iinze0.
 
-This is not a copy of Talon or Oneclick. Those tools go further (Edge removal, service wipes, update blocks). That is also how they break machines. bare skips those.
-
 ## Use
 
-Right-click `bare.cmd` and run as administrator, or from an admin PowerShell:
+Right-click `bare.cmd` and run as administrator.
 
 ```powershell
 .\bare.cmd
 ```
 
-The menu:
+1. Full pass. Restore point, inbox apps, ads, Copilot policy, then the background CPU pass. This is the one to run.
+9. Background only. Services to manual, a few scheduled tasks off, Game DVR off, widgets off, Ultimate performance plan if Windows has it.
 
-1. Safe pass. Restore point, then apps, ads, tips, and Copilot policy. This is the one to run.
-2. Inbox apps only. Clipchamp, News, Solitaire, Bing apps, and the rest of the list. Not Store, Notepad, Calculator, Photos, Terminal.
-3. Ads, tips, suggestions, and start-menu recommendations.
-4. Copilot button and Windows consumer Copilot policy. Does not uninstall Edge.
-5. Optional telemetry services set to manual. DiagTrack and dmwappushservice. They are not deleted.
-6. Show file extensions and hidden files. Open This PC instead of Home.
-7. High performance power plan, if the scheme exists. Does not delete Balanced.
-8. Restore point only.
+A log is written to `bare-log.txt`.
 
-Every change is logged to `bare-log.txt` next to the script.
+## What the background pass actually stops
 
-## Left alone on purpose
+Services set to manual, not deleted: DiagTrack, delivery optimization, SysMain, Windows Search, error reporting, Xbox services, Maps, Fax, Retail Demo, Remote Registry, phone, wallet, geolocation.
 
-- Windows Update, Defender, Firewall, Windows Search
-- Edge, Store, OneDrive uninstall, account login
-- Services Windows needs to boot, update, and install drivers
-- Registry latency myths, timer tweaks, IMOD, and driver edits
+Tasks disabled: compatibility appraiser, customer experience, Maps update, feedback, disk-diagnostic data collection.
 
-If a pass did something you dislike, System Restore is the undo. Create the point from the menu before the first run if you skip option 1.
+Also: Game DVR capture off, widgets and news off, background Store apps not allowed to run in the background, transparency and window animations off, Ultimate performance power plan if the scheme exists.
+
+Search will be slower after Windows Search is manual. Xbox sign-in and Game Bar will not be running. Store apps will not refresh in the background. That is the trade for a quieter CPU.
+
+## Left alone
+
+Defender, Firewall, Windows Update, Edge, Store, audio, network, print spooler, and anything required to boot. Services are set to manual so Windows can still start them if a feature needs them. Nothing is deleted from System32.
