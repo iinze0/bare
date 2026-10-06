@@ -1,16 +1,17 @@
-# bare 3.9
+# bare 3.10
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
 $Last = Join-Path $PSScriptRoot 'bare-last.txt'
 $Before = Join-Path $PSScriptRoot 'bare-before.txt'
+$Report = Join-Path $PSScriptRoot 'bare-report.txt'
 function Write-Log([string]$msg) { Add-Content -Path $Log -Value ('{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg); Write-Host $msg }
 function Assert-Admin { $p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent()); if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { Write-Host 'Not running as administrator.'; exit 1 } }
 function Set-Dword([string]$path, [string]$name, [int]$value) { if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }; New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null }
 function Set-ServiceMode([string]$name, [string]$mode) { try { if ($mode -eq 'Disabled') { Stop-Service -Name $name -Force -ErrorAction SilentlyContinue; Set-Service -Name $name -StartupType Disabled -ErrorAction Stop } elseif ($mode -eq 'Automatic') { Set-Service -Name $name -StartupType Automatic -ErrorAction Stop; Start-Service -Name $name -ErrorAction SilentlyContinue } else { Set-Service -Name $name -StartupType Manual -ErrorAction Stop }; Write-Log "$name -> $mode" } catch { Write-Log "$name unchanged: $($_.Exception.Message)" } }
 $opts = [ordered]@{ apps=$false; ads=$false; tasks=$false; privacy=$false; telemetry=$false; search=$false; xbox=$false; gamedvr=$false; cpu=$false; idle=$false; hags=$false; visuals=$false; mouse=$false; sticky=$false; focus=$false; temp=$false; startup=$false; hibernate=$false; bluetooth=$false; print=$false; ipv6=$false; onedrive=$false; browser=$false; updates=$false; defender=$false }
 $labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, speech, clipboard, Find My Device'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100%, no parking, no throttling, NTFS cache'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
-function Show-Opts { $i=1; $on=0; foreach($k in $opts.Keys){ if($opts[$k]){ $on++ }; Write-Host ('{0,2}  [{1}]  {2}' -f $i, $(if($opts[$k]){'ON '}else{'off'}), $labels[$k]); $i++ }; Write-Host "$on on" }
+function Show-Opts([switch]$OnOnly) { $i=1; $on=0; foreach($k in $opts.Keys){ if($opts[$k]){ $on++ }; if(-not $OnOnly -or $opts[$k]){ Write-Host ('{0,2}  [{1}]  {2}' -f $i, $(if($opts[$k]){'ON '}else{'off'}), $labels[$k]) }; $i++ }; Write-Host "$on on" }
 function Invoke-Key([int]$n){ $keys=@($opts.Keys); if($n -ge 1 -and $n -le $keys.Count){ $opts[$keys[$n-1]] = -not $opts[$keys[$n-1]] } }
 function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals','mouse','sticky')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals','mouse','sticky','focus')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
 function Save-Ticks { $on = @($opts.Keys | Where-Object { $opts[$_] }); Set-Content -Path $TickFile -Value ($on -join ','); Write-Log "Saved ticks: $($on -join ', ')" }
@@ -133,6 +134,13 @@ function Invoke-Scan {
   Write-Host ("Edge folder: {0}" -f (Test-Path (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application')))
   if (Test-Path $TickFile) { Write-Host ("Saved ticks: {0}" -f (Get-Content $TickFile -Raw).Trim()) } else { Write-Host 'Saved ticks: none' }
 }
+function Write-Report {
+  $lines = @((Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), (powercfg /getactivescheme))
+  foreach ($svc in @('DiagTrack','SysMain','DoSvc','WSearch','XblGameSave','bthserv','Spooler','wuauserv','WinDefend')) { try { $lines += "$svc $((Get-Service $svc -ErrorAction Stop).StartType)" } catch { $lines += "$svc missing" } }
+  $lines += 'ticks ' + ((@($opts.Keys | Where-Object { $opts[$_] })) -join ',')
+  Set-Content -Path $Report -Value $lines
+  Write-Log "Report written: $Report"
+}
 function Invoke-Dry {
   Write-Host 'Dry run. Nothing will be written.'
   foreach ($k in $opts.Keys) { if ($opts[$k]) { Write-Host "  would apply $k - $($labels[$k])" } }
@@ -171,7 +179,7 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.9 apply'
+  Write-Log 'bare 3.10 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
@@ -181,7 +189,7 @@ function Invoke-Apply {
   $before += (powercfg /getactivescheme)
   foreach ($svc in @('DiagTrack','SysMain','WSearch','wuauserv','WinDefend')) { try { $before += "$svc $((Get-Service $svc -ErrorAction Stop).StartType)" } catch { $before += "$svc missing" } }
   Set-Content -Path $Before -Value $before
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.9 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.10 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -310,13 +318,13 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.9 started'
+Write-Log 'bare 3.10 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.9'
+  Write-Host 'bare 3.10'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
-  Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   h help   0 exit'
+  Write-Host 'a apply   d dry run   r revert   c scan   w report   f on-only   n clear   s save   l load   h help   0 exit'
   $choice = Read-Host 'Choose'
   switch ($choice) {
     'p' { Set-Preset 'perf' }
@@ -329,6 +337,9 @@ while ($true) {
     's' { Save-Ticks }
     'l' { Load-Ticks }
     'h' { Write-Host 'p performance: apps, ads, tasks, telemetry, search, xbox, games, cpu, hags, visuals, mouse, sticky'; Write-Host 'g gaming: apps, ads, tasks, games, cpu, hags, visuals, mouse, sticky, focus. Leaves Xbox, Edge, Update, Defender.'; Write-Host 'v privacy: apps, ads, tasks, privacy, telemetry, search. Camera and microphone stay.'; Write-Host 'Idle, temp, startup, IPv6, OneDrive, Edge, Update, and Defender ask for yes.' }
+    'w' { Write-Report }
+    'f' { Show-Opts -OnOnly }
+    'n' { foreach($k in @($opts.Keys)){ $opts[$k]=$false }; Write-Host 'Cleared.' }
     '0' { break }
     default { if ($choice -match '^\d+$') { Invoke-Key ([int]$choice) } }
   }

@@ -1,7 +1,7 @@
 # Version
 
-bare 3.9
+bare 3.10
 
-Release: [v3.9](https://github.com/iinze0/bare/releases/tag/v3.9)
+Release: [v3.10](https://github.com/iinze0/bare/releases/tag/v3.10)
 
-CPU tick turns connected standby off, so the machine does not enter a network-connected sleep that keeps services running. Revert removes DisablePagingExecutive and CSEnabled.
+`f` shows only ticked lines. `n` clears every tick. `w` writes `bare-report.txt` with the power plan, nine services, and the current ticks. Nothing is changed by those three keys.
