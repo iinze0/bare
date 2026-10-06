@@ -1,14 +1,22 @@
 # Privacy
 
-Option 4 writes policies. It does not uninstall Edge or OneDrive.
+The privacy tick is the `v` preset plus option 4.
 
-- AllowTelemetry 0
-- AdvertisingInfo DisabledByGroupPolicy 1
-- EnableActivityFeed 0
-- DisableLocation 1
-- BingSearchEnabled 0
-- DisableWebSearch 1
+It sets:
 
-Option 5 disables DiagTrack and dmwappushservice. Option 6 disables Windows Search.
+- Telemetry policy to 0, and the same value under the older DataCollection policy key.
+- Tailored experiences and feedback prompts off.
+- Advertising id off.
+- Activity feed publish and upload off. Cross-device activity off.
+- Location and location scripting off.
+- Find My Device off.
+- Clipboard history and cross-device clipboard off.
+- Inking and typing collection off.
+- Online speech acceptance off.
+- Bing search, cloud search, Cortana, and search highlights off.
+- Settings sync off, and the user cannot turn it back on from Settings.
+- Apps cannot read the signed-in account name.
 
-Defender and Windows Update are separate ticks, 20 and 19, and are not part of the privacy preset. A privacy pass that also disables updates stops patches.
+It does not change camera, microphone, or notification access. Those break calls and games if denied globally.
+
+The privacy preset also ticks app removal, ads, scheduled tasks, telemetry services, and Windows Search.

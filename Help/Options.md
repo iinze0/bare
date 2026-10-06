@@ -1,13 +1,13 @@
 # Options
 
-Version 3.2. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 3.3. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |
 | 1 | Removes and deprovisions Clipchamp, Bing apps, Get Help, Office hub, Solitaire, People, To Do, Maps, Xbox overlays, Phone Link, Groove, Movies and TV, Cortana, Dev Home, Outlook, Teams, Sticky Notes, Voice Recorder, Copilot. Store and Edge stay. |
 | 2 | Suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
 | 3 | Compatibility appraiser, ProgramDataUpdater, StartupAppTask, CEIP, Maps, feedback, disk diagnostics, error reporting, WinSAT, family safety. |
-| 4 | Telemetry policy 0, advertising id, activity feed publish and upload, location, Bing search, Cortana, settings sync. |
+| 4 | Telemetry 0, tailored experiences, feedback prompts, advertising id, activity feed and upload, location, Find My Device, clipboard history, cross-device clipboard, inking and typing collection, online speech, Bing and cloud search, search highlights, settings sync, app account-info access. Camera and microphone stay. |
 | 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. Prefetch and Superfetch off. |
 | 6 | Disables WSearch. |
 | 7 | Disables the four Xbox services. |

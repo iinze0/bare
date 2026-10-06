@@ -1,4 +1,4 @@
-# bare 3.2
+# bare 3.3
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -7,7 +7,7 @@ function Assert-Admin { $p = New-Object Security.Principal.WindowsPrincipal([Sec
 function Set-Dword([string]$path, [string]$name, [int]$value) { if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }; New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null }
 function Set-ServiceMode([string]$name, [string]$mode) { try { if ($mode -eq 'Disabled') { Stop-Service -Name $name -Force -ErrorAction SilentlyContinue; Set-Service -Name $name -StartupType Disabled -ErrorAction Stop } elseif ($mode -eq 'Automatic') { Set-Service -Name $name -StartupType Automatic -ErrorAction Stop; Start-Service -Name $name -ErrorAction SilentlyContinue } else { Set-Service -Name $name -StartupType Manual -ErrorAction Stop }; Write-Log "$name -> $mode" } catch { Write-Log "$name unchanged: $($_.Exception.Message)" } }
 $opts = [ordered]@{ apps=$false; ads=$false; tasks=$false; privacy=$false; telemetry=$false; search=$false; xbox=$false; gamedvr=$false; cpu=$false; idle=$false; hags=$false; visuals=$false; mouse=$false; sticky=$false; focus=$false; temp=$false; startup=$false; hibernate=$false; bluetooth=$false; print=$false; ipv6=$false; onedrive=$false; browser=$false; updates=$false; defender=$false }
-$labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, Bing, sync'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100% on AC, parking off, USB suspend off'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
+$labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, speech, clipboard, Find My Device'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100% on AC, parking off, USB suspend off'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
 function Show-Opts { $i=1; $on=0; foreach($k in $opts.Keys){ if($opts[$k]){ $on++ }; Write-Host ('{0,2}  [{1}]  {2}' -f $i, $(if($opts[$k]){'ON '}else{'off'}), $labels[$k]); $i++ }; Write-Host "$on on" }
 function Invoke-Key([int]$n){ $keys=@($opts.Keys); if($n -ge 1 -and $n -le $keys.Count){ $opts[$keys[$n-1]] = -not $opts[$keys[$n-1]] } }
 function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals','mouse','sticky')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals','mouse','sticky','focus')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
@@ -140,13 +140,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.2 apply'
+  Write-Log 'bare 3.3 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.2 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.3 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -162,18 +162,37 @@ function Invoke-Apply {
   if ($opts.tasks) { Disable-Tasks }
   if ($opts.privacy) {
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'DisableOneSettingsDownloads' 1
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'DoNotShowFeedbackNotifications' 1
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy' 'TailoredExperiencesWithDiagnosticDataEnabled' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableTailoredExperiencesWithDiagnosticData' 1
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo' 'DisabledByGroupPolicy' 1
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' 'Enabled' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableActivityFeed' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'PublishUserActivities' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'UploadUserActivities' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableCdp' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' 'DisableLocation' 1
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'BingSearchEnabled' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'CortanaConsent' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' 'DisableLocationScripting' 1
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice' 'AllowFindMyDevice' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowCrossDeviceClipboard' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Clipboard' 'EnableClipboardHistory' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\InputPersonalization' 'AllowInputPersonalization' 0
+    Set-Dword 'HKCU:\Software\Microsoft\InputPersonalization' 'RestrictImplicitTextCollection' 1
+    Set-Dword 'HKCU:\Software\Microsoft\InputPersonalization' 'RestrictImplicitInkCollection' 1
+    Set-Dword 'HKCU:\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy' 'HasAccepted' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'AllowCortana' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'DisableWebSearch' 1
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'AllowCloudSearch' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'BingSearchEnabled' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'CortanaConsent' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings' 'IsDynamicSearchBoxEnabled' 0
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync' 'DisableSettingSync' 2
-    Write-Log 'Privacy policies set.'
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync' 'DisableSettingSyncUserOverride' 1
+    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection' 'AllowTelemetry' 0
+    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy' 'LetAppsAccessAccountInfo' 2
+    Write-Log 'Privacy policies set. Camera and microphone were not changed.'
   }
   if ($opts.telemetry) {
     foreach ($s in @('DiagTrack','dmwappushservice','DoSvc','SysMain','WerSvc','PcaSvc')) { Set-ServiceMode $s 'Disabled' }
@@ -252,10 +271,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.2 started'
+Write-Log 'bare 3.3 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.2'
+  Write-Host 'bare 3.3'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'

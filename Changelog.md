@@ -1,11 +1,10 @@
 # Changelog
 
+## 3.3
+
+- Privacy tick expanded: tailored experiences, feedback prompts, cross-device activity, Find My Device, clipboard history, cloud clipboard, inking and typing collection, online speech, cloud search, search highlights, settings sync override, account-info app access.
+- Camera and microphone permissions are left alone.
+
 ## 3.2
 
-- CPU tick: processor boost policy 100, wireless adapter power saving off.
-- Telemetry tick: EnablePrefetcher 0 and EnableSuperfetch 0, on top of the SysMain service disable.
-- Idle-off: optional `bcdedit` dynamic tick disable. Asks for yes. Needs a reboot. Can make timing less stable.
-
-## 3.1
-
-- Hybrid policy, service split, memory compression off, Nagle off.
+- Boost policy, prefetch off, optional dynamic tick.

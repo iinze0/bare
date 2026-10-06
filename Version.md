@@ -1,7 +1,7 @@
 # Version
 
-bare 3.2
+bare 3.3
 
-Release: [v3.2](https://github.com/iinze0/bare/releases/tag/v3.2)
+Release: [v3.3](https://github.com/iinze0/bare/releases/tag/v3.3)
 
-CPU tick sets boost policy to 100 and turns wireless adapter power saving off. Telemetry tick turns prefetch and Superfetch off. Idle-off can disable dynamic tick, and it asks first.
+The privacy tick now also turns off tailored experiences, feedback prompts, activity upload, Find My Device, clipboard history and cross-device clipboard, inking and typing collection, online speech, cloud search, search highlights, and settings sync override. Camera and microphone access are not changed.
