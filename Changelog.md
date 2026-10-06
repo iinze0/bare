@@ -1,11 +1,10 @@
 # Changelog
 
+## 3.1
+
+- CPU tick: energy performance preference 0, latency hint 100, heterogeneous policy prefers performance cores, service host split raised, memory compression off, page combining off.
+- Games tick: TcpAckFrequency 1 and TCPNoDelay 1 on each interface. This cuts latency. It can hurt a download.
+
 ## 3.0
 
-- CPU tick: NTFS last-access updates off, NTFS memory usage 2, system responsiveness 0, network throttling index max.
-- GPU scheduling tick: multiplane overlay off. This is a stutter fix. Turn it off in the registry if a game gets worse.
-- Visuals tick: MinAnimate 0.
-
-## 2.9
-
-- PCI Express power saving off, boost aggressive, disk idle off, power throttling off, priority 38.
+- NTFS cache, multiplane overlay off, window animations off.

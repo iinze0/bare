@@ -1,4 +1,4 @@
-# bare 3.0
+# bare 3.1
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -50,7 +50,13 @@ function Set-Cpu([bool]$idleOff) {
   if (-not (Test-Path $mm)) { New-Item -Path $mm -Force | Out-Null }
   Set-Dword $mm 'SystemResponsiveness' 0
   New-ItemProperty -Path $mm -Name 'NetworkThrottlingIndex' -Value 4294967295 -PropertyType DWord -Force | Out-Null
-  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38. NTFS cache raised. Last-access updates off.'
+  powercfg /setacvalueindex $guid SUB_PROCESSOR PERFEPP 0 | Out-Null
+  powercfg /setacvalueindex $guid SUB_PROCESSOR LATENCYHINTPERF 100 | Out-Null
+  powercfg /setacvalueindex $guid SUB_PROCESSOR HETEROPOLICY 0 | Out-Null
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' 38000000
+  try { Disable-MMAgent -MemoryCompression -ErrorAction Stop; Write-Log 'Memory compression off.' } catch { Write-Log 'Memory compression unchanged.' }
+  try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining unchanged.' }
+  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance.'
 }
 
 function Clear-UserTemp {
@@ -124,13 +130,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.0 apply'
+  Write-Log 'bare 3.1 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.0 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.1 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -179,7 +185,11 @@ function Invoke-Apply {
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
     Set-Dword 'HKCU:\System\GameConfigStore' 'GameDVR_FSEBehaviorMode' 2
     Set-Dword 'HKCU:\Software\Microsoft\GameBar' 'UseNexusForGameBarEnabled' 0
-    Write-Log 'Game DVR off, Game Bar off, fullscreen optimizations off, games priority raised.'
+    Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -ErrorAction SilentlyContinue | ForEach-Object {
+      New-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -Value 1 -PropertyType DWord -Force | Out-Null
+      New-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -Value 1 -PropertyType DWord -Force | Out-Null
+    }
+    Write-Log 'Game DVR off, Game Bar off, fullscreen optimizations off, games priority raised, Nagle off.'
   }
   if ($opts.cpu -or $opts.idle) { Set-Cpu ([bool]$opts.idle) }
   if ($opts.hags) { Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2; Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' 'OverlayTestMode' 5; Write-Log 'HAGS on. Multiplane overlay off.' }
@@ -227,10 +237,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.0 started'
+Write-Log 'bare 3.1 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.0'
+  Write-Host 'bare 3.1'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
