@@ -1,31 +1,37 @@
 # What bare does
 
-## Option 1, full pass
+## Both profiles
 
-Restore point, then:
+Restore point.
 
-Inbox apps removed: Clipchamp, News, Weather, Bing search, Get Help, Get Started, Office hub, Solitaire, Mixed Reality, People, To Do, Feedback Hub, Maps, Phone Link, Groove, Movies and TV, Family, Quick Assist, Cortana, Dev Home, Outlook for Windows, Alarms, Teams, Xbox app and overlays, Narrator quick start, Sticky Notes, Voice Recorder, Snipping Tool package.
+Removes inbox apps: Clipchamp, News, Weather, Bing, Get Help, Get Started, Office hub, Solitaire, Mixed Reality, People, To Do, Feedback Hub, Maps, Phone Link, Groove, Movies and TV, Family, Quick Assist, Cortana, Dev Home, Outlook for Windows, Alarms, Teams, Xbox app and overlays, Narrator quick start, Sticky Notes, Voice Recorder.
 
-Ads, tips, start recommendations, widgets news off. Copilot button and policy off. Edge stays.
+Ads, tips, start recommendations, widgets, Copilot button and policy off. Edge stays.
 
-Services set to manual and stopped: DiagTrack, dmwappushservice, DoSvc, SysMain, WSearch, WerSvc, Xbox services, Maps, Fax, Retail Demo, Remote Registry, Phone, Wallet, Geolocation, Program Compatibility Assistant.
+Feedback, compatibility, Maps, and CEIP tasks off.
 
-Tasks disabled: compatibility appraiser, ProgramDataUpdater, CEIP, Maps update, feedback, disk diagnostic collector, error reporting queue, startup app task, WinSAT, family safety monitor.
+Game DVR and capture off. Game Mode on. Hardware-accelerated GPU scheduling on. MMCSS games task raised. Network throttling index maxed. Startup delay 0. Visual effects set to performance.
 
-Game DVR off. Background Store apps blocked. Transparency and animations off. Ultimate performance plan if the edition has it.
+CPU minimum and maximum 100% on AC. Core parking min cores 100%. USB selective suspend off.
 
-## Option 7, insane
+## 1 Performance
 
-Runs option 1, then:
+Telemetry, SysMain, Search, Delivery Optimization, error reporting, Maps, Fax, Xbox services set to disabled.
 
-- Those optional services set to disabled, not just manual
-- Print spooler, Print Notify, and Bluetooth disabled
-- CPU minimum and maximum at 100% on AC
-- Core parking off
-- Network throttling index maxed, system responsiveness 0
-- Startup delay 0
-- Visual effects set to performance
-- Hibernate off
-- Kernel kept in RAM (`DisablePagingExecutive`)
+File search and Xbox sign-in will not be running. Bluetooth is not touched.
 
-Hotter, louder, file search dead, no print, no Bluetooth, until you turn those services back on. Defender and Windows Update still run.
+## 2 Gaming
+
+Same cleanup, but Xbox services, Bluetooth, and audio are forced automatic so controllers and game audio still work. Search is manual, not disabled.
+
+GPU driver services are not touched. Nvidia and AMD panels keep working.
+
+## 3 Performance, idle off
+
+Performance profile, then processor idle disable. The CPU does not park in idle states. More heat, more power. Not for laptops.
+
+## 4 Scan and 5 Fix drift
+
+Scan prints the active power plan, processor minimum, and startup type for telemetry, SysMain, Search, Xbox, Bluetooth, audio, Defender, and Windows Update.
+
+Fix drift reads `bare-profile.txt` and applies that profile again.

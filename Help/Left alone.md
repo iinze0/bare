@@ -1,10 +1,9 @@
 # Left alone
 
-Even option 7 does not touch:
+Defender, Firewall, Windows Update, Edge, Store, sign-in, audio endpoint, network, DHCP.
 
-- Windows Defender and Firewall
-- Windows Update
-- Edge, Store, sign-in, audio, network, DHCP
-- Drivers, IMOD, timer-resolution hacks
+No IMOD register writes. No timer-resolution driver. No Edge removal. No IPv6 disable. No Nvidia service disable.
 
-Insane does disable print and Bluetooth. Turn `Spooler` and `bthserv` back to Manual in services.msc if you need them.
+Gaming profile also leaves Bluetooth and Xbox services on.
+
+Idle off is opt-in. A 100% minimum already stops the plan from throttling the chip down.

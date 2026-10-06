@@ -1,32 +1,29 @@
 # bare
 
-bare is the all-in-one Windows performance tool. It stops telemetry, inbox apps, and optional background work from sitting on the CPU you paid for. Option 7 is the insane pass: clocks pinned, core parking off, more services disabled. It can run hotter and a few features will be missing. It still boots.
+One Windows tool for debloat and performance. Two profiles, plus a scan that puts drifted settings back.
 
-Made by iinze0.
+Made by iinze0. Not a copy of Talon or Oneclick. Those delete Edge, the Store, and sometimes driver services. bare does not, because that is how a gaming PC stops working.
 
 # Important
 
-Run as administrator on Windows 10 or 11. Option 1 is the normal full pass. Option 7 asks you to type `yes`, makes a restore point, then goes harder.
+Run `bare.cmd` as administrator on Windows 10 or 11. Both profiles make a restore point first.
 
-Insane disables the print spooler and Bluetooth, turns hibernate off, and holds the CPU at 100% on AC. Fans will spin. Games can stutter if the chip thermal-limits. Defender, Windows Update, Edge, audio, and network stay on.
-
-# Transparency
-
-No downloads. Everything is in `bare.ps1`. A local log is written to `bare-log.txt`. Nothing is uploaded.
+Option 3 disables CPU idle. That is the hottest setting. Skip it on a laptop or if the cooler is weak. Idle off can lower latency or it can make frames worse once the chip hits its thermal limit.
 
 # Usage
 
-1. Copy `bare.cmd` and `bare.ps1` to a folder.
-2. Right-click `bare.cmd` and run it as administrator.
-3. Choose `1` for the full pass, or `7` and type `yes` for insane. Restart.
+1. Right-click `bare.cmd`, run as administrator.
+2. `1` performance, or `2` gaming.
+3. Restart.
+4. Later, `4` scans and `5` re-applies the last profile if Windows turned a service back on.
 
-# What it does
+# Profiles
 
-[What bare does](Help/What%20it%20does.md) | Normal pass and insane pass.
+[What it does](Help/What%20it%20does.md)
 
-[Left alone](Help/Left%20alone.md) | What it will not kill.
+[Left alone](Help/Left%20alone.md)
 
-[Revert](Help/Revert.md) | Restore point.
+[Revert](Help/Revert.md)
 
 [Changelog](Changelog.md)
 

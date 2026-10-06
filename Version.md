@@ -1,5 +1,5 @@
 # Version
 
-bare 1.1
+bare 2.0
 
-Option 1 full pass. Option 7 insane. Windows 10 and 11. Run `bare.cmd` as administrator.
+1 performance. 2 gaming. 3 idle off. 4 scan. 5 fix drift.
