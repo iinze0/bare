@@ -1,10 +1,11 @@
 # Changelog
 
+## 3.2
+
+- CPU tick: processor boost policy 100, wireless adapter power saving off.
+- Telemetry tick: EnablePrefetcher 0 and EnableSuperfetch 0, on top of the SysMain service disable.
+- Idle-off: optional `bcdedit` dynamic tick disable. Asks for yes. Needs a reboot. Can make timing less stable.
+
 ## 3.1
 
-- CPU tick: energy performance preference 0, latency hint 100, heterogeneous policy prefers performance cores, service host split raised, memory compression off, page combining off.
-- Games tick: TcpAckFrequency 1 and TCPNoDelay 1 on each interface. This cuts latency. It can hurt a download.
-
-## 3.0
-
-- NTFS cache, multiplane overlay off, window animations off.
+- Hybrid policy, service split, memory compression off, Nagle off.

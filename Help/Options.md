@@ -1,6 +1,6 @@
 # Options
 
-Version 3.1. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 3.2. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |
@@ -8,12 +8,12 @@ Version 3.1. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only p
 | 2 | Suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
 | 3 | Compatibility appraiser, ProgramDataUpdater, StartupAppTask, CEIP, Maps, feedback, disk diagnostics, error reporting, WinSAT, family safety. |
 | 4 | Telemetry policy 0, advertising id, activity feed publish and upload, location, Bing search, Cortana, settings sync. |
-| 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. |
+| 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. Prefetch and Superfetch off. |
 | 6 | Disables WSearch. |
 | 7 | Disables the four Xbox services. |
 | 8 | Game DVR, capture, and Game Bar off. Fullscreen optimizations off. Game Mode on. Games GPU priority 8. Network throttling index max. Startup delay 0. Nagle off on each interface. |
-| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, PCI Express power saving off, boost mode aggressive, disk idle off, power throttling off, foreground priority 38, NTFS last-access off, NTFS cache raised, multimedia responsiveness 0, hybrid policy on performance cores, service split raised, memory compression off. |
-| 10 | Option 9 plus idle disable. Asks for yes. |
+| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, PCI Express power saving off, boost mode aggressive, disk idle off, power throttling off, foreground priority 38, NTFS last-access off, NTFS cache raised, multimedia responsiveness 0, hybrid policy on performance cores, service split raised, memory compression off, boost policy 100, wireless adapter power saving off. |
+| 10 | Option 9 plus idle disable. Can also disable dynamic tick. Asks for yes. Needs a reboot. |
 | 11 | HwSchMode 2. Multiplane overlay off. |
 | 12 | Performance visuals, transparency off, taskbar animations off, window animations off, menu delay 0, full-window drag off, file extensions shown. |
 | 13 | Mouse acceleration off. MouseSpeed and both thresholds set to the text value 0. |

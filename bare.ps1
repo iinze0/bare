@@ -1,4 +1,4 @@
-# bare 3.1
+# bare 3.2
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -40,7 +40,15 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setacvalueindex $guid SUB_PROCESSOR PERFBOOSTMODE 2 | Out-Null
   powercfg /setacvalueindex $guid SUB_DISK DISKIDLE 0 | Out-Null
   powercfg /setacvalueindex $guid SUB_NONE CONNECTIVITYINKB 0 | Out-Null
-  if ($idleOff) { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 1 | Out-Null; Write-Log 'Idle off.' } else { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 0 | Out-Null }
+  if ($idleOff) {
+    powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 1 | Out-Null
+    if ((Read-Host 'Disable dynamic tick? This can make the clock less stable. Type yes') -eq 'yes') {
+      bcdedit /set disabledynamictick yes | Out-Null
+      bcdedit /set useplatformtick yes | Out-Null
+      Write-Log 'Dynamic tick off. Reboot required.'
+    }
+    Write-Log 'Idle off.'
+  } else { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 0 | Out-Null }
   powercfg /setactive $guid | Out-Null
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' 'PowerThrottlingOff' 1
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' 'Win32PrioritySeparation' 38
@@ -53,6 +61,8 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setacvalueindex $guid SUB_PROCESSOR PERFEPP 0 | Out-Null
   powercfg /setacvalueindex $guid SUB_PROCESSOR LATENCYHINTPERF 100 | Out-Null
   powercfg /setacvalueindex $guid SUB_PROCESSOR HETEROPOLICY 0 | Out-Null
+  powercfg /setacvalueindex $guid SUB_PROCESSOR PERFBOOSTPOL 100 | Out-Null
+  powercfg /setacvalueindex $guid 19cbb8fa-5279-450e-9fac-8a3a5c00066c 12bbebe6-58d6-4636-95bb-3217ef867c1a 0 | Out-Null
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' 38000000
   try { Disable-MMAgent -MemoryCompression -ErrorAction Stop; Write-Log 'Memory compression off.' } catch { Write-Log 'Memory compression unchanged.' }
   try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining unchanged.' }
@@ -130,13 +140,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.1 apply'
+  Write-Log 'bare 3.2 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.1 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.2 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -165,7 +175,12 @@ function Invoke-Apply {
     Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync' 'DisableSettingSync' 2
     Write-Log 'Privacy policies set.'
   }
-  if ($opts.telemetry) { foreach ($s in @('DiagTrack','dmwappushservice','DoSvc','SysMain','WerSvc','PcaSvc')) { Set-ServiceMode $s 'Disabled' } }
+  if ($opts.telemetry) {
+    foreach ($s in @('DiagTrack','dmwappushservice','DoSvc','SysMain','WerSvc','PcaSvc')) { Set-ServiceMode $s 'Disabled' }
+    Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnablePrefetcher' 0
+    Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnableSuperfetch' 0
+    Write-Log 'Prefetch and Superfetch off.'
+  }
   if ($opts.search) { Set-ServiceMode 'WSearch' 'Disabled' }
   if ($opts.xbox) { foreach ($s in @('XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc')) { Set-ServiceMode $s 'Disabled' } }
   if ($opts.gamedvr) {
@@ -237,10 +252,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.1 started'
+Write-Log 'bare 3.2 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.1'
+  Write-Host 'bare 3.2'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
