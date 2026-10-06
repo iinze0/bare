@@ -1,7 +1,7 @@
 # Version
 
-bare 2.2
+bare 2.3
 
-Windows 10 and 11. Administrator.
+Release file: [bare.bat](bare.bat)
 
-Numbers toggle. `p` `g` `v` fill presets. `a` applies. `0` exits.
+Right-click `bare.bat` and run as administrator. It does not download the script. The PowerShell is embedded under the `#__BARE_PS1__` marker. Log: `%USERPROFILE%\bare-log.txt`.
