@@ -1,4 +1,4 @@
-# bare 2.9
+# bare 3.0
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -44,7 +44,13 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setactive $guid | Out-Null
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' 'PowerThrottlingOff' 1
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' 'Win32PrioritySeparation' 38
-  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38.'
+  fsutil behavior set disablelastaccess 1 | Out-Null
+  fsutil behavior set memoryusage 2 | Out-Null
+  $mm = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+  if (-not (Test-Path $mm)) { New-Item -Path $mm -Force | Out-Null }
+  Set-Dword $mm 'SystemResponsiveness' 0
+  New-ItemProperty -Path $mm -Name 'NetworkThrottlingIndex' -Value 4294967295 -PropertyType DWord -Force | Out-Null
+  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38. NTFS cache raised. Last-access updates off.'
 }
 
 function Clear-UserTemp {
@@ -118,13 +124,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 2.9 apply'
+  Write-Log 'bare 3.0 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 2.9 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.0 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -176,7 +182,7 @@ function Invoke-Apply {
     Write-Log 'Game DVR off, Game Bar off, fullscreen optimizations off, games priority raised.'
   }
   if ($opts.cpu -or $opts.idle) { Set-Cpu ([bool]$opts.idle) }
-  if ($opts.hags) { Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2; Write-Log 'HAGS on.' }
+  if ($opts.hags) { Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2; Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' 'OverlayTestMode' 5; Write-Log 'HAGS on. Multiplane overlay off.' }
   if ($opts.mouse) { Set-Mouse }
   if ($opts.sticky) { Set-Sticky }
   if ($opts.focus) { Set-Focus }
@@ -190,7 +196,8 @@ function Invoke-Apply {
     Set-String 'HKCU:\Control Panel\Desktop' 'MenuShowDelay' '0'
     Set-Dword 'HKCU:\Control Panel\Desktop' 'DragFullWindows' 0
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ListviewShadow' 0
-    Write-Log 'Visuals set. Menu delay 0.'
+    Set-String 'HKCU:\Control Panel\Desktop\WindowMetrics' 'MinAnimate' '0'
+    Write-Log 'Visuals set. Menu delay 0. Window animations off.'
   }
   if ($opts.hibernate) { powercfg -h off | Out-Null; Write-Log 'Hibernate off.' }
   if ($opts.bluetooth) { Set-ServiceMode 'bthserv' 'Disabled' }
@@ -220,10 +227,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 2.9 started'
+Write-Log 'bare 3.0 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 2.9'
+  Write-Host 'bare 3.0'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
