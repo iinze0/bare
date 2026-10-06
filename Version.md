@@ -1,5 +1,5 @@
 # Version
 
-bare 2.1
+bare 2.2
 
-1 performance. 2 gaming. 3 idle off. 6 privacy. 7 browser swap.
+Toggle a number. `p` `g` `v` fill a preset. `a` applies.

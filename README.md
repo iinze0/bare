@@ -1,37 +1,22 @@
 # bare
 
-Windows menu for performance, gaming, and privacy. Edge is not removed unless you install another browser first and type `yes`.
+Pick each change, then apply. Presets only tick boxes. They do not run until you press `a`.
 
-Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or QuakedK.
+Made by [iinze0](https://github.com/iinze0). MIT. Not a copy of Oneclick.
 
 | | |
 | --- | --- |
-| Version | 2.1 |
-| OS | Windows 10 and 11 |
-| Needs | Administrator |
-| Browser swap | Uses winget. That is the only download, and only if you choose it. |
-
-## Menu
+| Version | 2.2 |
+| Run | `bare.cmd` as administrator |
 
 ```text
-1  Performance
-2  Gaming
-3  Performance + idle off
-6  Privacy
-7  Browser swap (Firefox or Brave, then optional Edge uninstall)
-4  Scan
-5  Fix drift
+1-20   toggle that option
+p      tick the performance set
+g      tick the gaming set
+v      tick the privacy set
+a      apply what is ON
 ```
 
-Right-click `bare.cmd` and run as administrator.
+Edge uninstall, IPv6, OneDrive, Windows Update, Defender, and idle-off ask for `yes` again even if the box is on.
 
-## Docs
-
-- [What it does](Help/What%20it%20does.md)
-- [Browser and Edge](Help/Browser.md)
-- [Privacy](Help/Privacy.md)
-- [Power and CPU](Help/Power.md)
-- [Left alone](Help/Left%20alone.md)
-- [Risks](Help/Risks.md)
-- [Revert](Help/Revert.md)
-- [Trust](Help/Trust.md)
+The full list is in [Help/Options.md](Help/Options.md).

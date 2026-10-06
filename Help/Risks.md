@@ -1,7 +1,5 @@
 # Risks
 
-- Edge removal can break Widgets and system web links. Install the other browser first. The script refuses the uninstall if winget did not succeed.
-- HAGS can stutter on old drivers.
-- Idle off (option 3) runs hot. Not for laptops.
-- Privacy sets telemetry to 0. Some diagnostics Microsoft uses for update problems will be empty.
-- Search disabled makes file search slow.
+Update disable and Defender disable are on the list because you asked for those switches. They are off until you tick them, and they ask for `yes` again. Leaving either off means the PC does not patch or does not scan.
+
+Edge removal can break Widgets. IPv6 off can break some VPNs. Idle off runs hot. Bluetooth off drops wireless controllers.

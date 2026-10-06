@@ -1,11 +1,10 @@
 # Changelog
 
+## 2.2
+
+- Selectable list. Presets only tick boxes.
+- Extra switches: hibernate, Bluetooth, print, IPv6, OneDrive, Windows Update, Defender. All off until selected. The risky ones ask again.
+
 ## 2.1
 
-- Privacy profile.
-- Browser swap: winget Firefox or Brave, then optional Edge uninstall via Edge setup.exe.
-- Performance and gaming still leave Edge installed.
-
-## 2.0
-
-- Performance and gaming profiles, scan, drift fix.
+- Privacy profile and browser swap.

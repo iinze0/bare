@@ -1,12 +1,8 @@
-# bare 2.1
-# Performance, gaming, privacy. Edge is removed only after another browser is installed.
+# bare 2.2 - pick each change. Nothing runs until you choose Apply.
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
-$StateFile = Join-Path $PSScriptRoot 'bare-profile.txt'
-
 function Write-Log([string]$msg) {
-    $line = '{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg
-    Add-Content -Path $Log -Value $line
+    Add-Content -Path $Log -Value ('{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg)
     Write-Host $msg
 }
 function Assert-Admin {
@@ -14,73 +10,9 @@ function Assert-Admin {
     $p = New-Object Security.Principal.WindowsPrincipal($id)
     if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { Write-Host 'Not running as administrator.'; exit 1 }
 }
-$AppPatterns = @(
-    'Clipchamp.Clipchamp','Microsoft.BingNews','Microsoft.BingWeather','Microsoft.BingSearch',
-    'Microsoft.GetHelp','Microsoft.Getstarted','Microsoft.MicrosoftOfficeHub',
-    'Microsoft.MicrosoftSolitaireCollection','Microsoft.MixedReality.Portal','Microsoft.People',
-    'Microsoft.Todos','Microsoft.WindowsFeedbackHub','Microsoft.WindowsMaps',
-    'Microsoft.Xbox.TCUI','Microsoft.XboxGameOverlay','Microsoft.XboxGamingOverlay',
-    'Microsoft.XboxIdentityProvider','Microsoft.XboxSpeechToTextOverlay','Microsoft.YourPhone',
-    'Microsoft.ZuneMusic','Microsoft.ZuneVideo','MicrosoftCorporationII.MicrosoftFamily',
-    'MicrosoftCorporationII.QuickAssist','Microsoft.549981C3F5F10','Microsoft.Windows.DevHome',
-    'Microsoft.OutlookForWindows','Microsoft.WindowsAlarms','MicrosoftTeams','MSTeams',
-    'Microsoft.GamingApp','Microsoft.Windows.NarratorQuickStart','Microsoft.MicrosoftStickyNotes',
-    'Microsoft.WindowsSoundRecorder','Microsoft.Windows.Copilot'
-)
-$QuietServices = @('DiagTrack','dmwappushservice','DoSvc','SysMain','WerSvc','MapsBroker','Fax','RetailDemo','RemoteRegistry','PhoneSvc','WalletService','lfsvc','PcaSvc','wisvc','WorkFolders','SharedAccess')
-$Tasks = @(
-    '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser',
-    '\Microsoft\Windows\Application Experience\ProgramDataUpdater',
-    '\Microsoft\Windows\Application Experience\StartupAppTask',
-    '\Microsoft\Windows\Customer Experience Improvement Program\Consolidator',
-    '\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip',
-    '\Microsoft\Windows\Maps\MapsUpdateTask',
-    '\Microsoft\Windows\Feedback\Siuf\DmClient',
-    '\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector',
-    '\Microsoft\Windows\Windows Error Reporting\QueueReporting',
-    '\Microsoft\Windows\Diagnosis\Scheduled',
-    '\Microsoft\Windows\DiskFootprint\Diagnostics',
-    '\Microsoft\Windows\Maintenance\WinSAT',
-    '\Microsoft\Windows\CloudExperienceHost\CreateObjectTask',
-    '\Microsoft\Windows\Shell\FamilySafetyMonitor'
-)
-function New-RestorePoint {
-    try {
-        Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue
-        Checkpoint-Computer -Description 'bare before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop
-        Write-Log 'Restore point created.'
-    } catch { Write-Log "Restore point skipped: $($_.Exception.Message)" }
-}
 function Set-Dword([string]$path, [string]$name, [int]$value) {
     if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
     New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null
-}
-function Remove-InboxApps {
-    $removed = 0
-    foreach ($name in $AppPatterns) {
-        foreach ($pkg in @(Get-AppxPackage -Name $name -AllUsers -ErrorAction SilentlyContinue)) {
-            try { Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop; Write-Log "Removed $($pkg.Name)"; $removed++ } catch { Write-Log "Could not remove $($pkg.Name): $($_.Exception.Message)" }
-        }
-        foreach ($p in @(Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq $name })) {
-            try { Remove-AppxProvisionedPackage -Online -PackageName $p.PackageName -ErrorAction Stop | Out-Null; Write-Log "Deprovisioned $($p.DisplayName)" } catch { Write-Log "Could not deprovision $($p.DisplayName): $($_.Exception.Message)" }
-        }
-    }
-    Write-Log "Inbox app pass done ($removed packages removed)."
-}
-function Disable-AdsAndTips {
-    $cdm = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
-    foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword $cdm $n 0 }
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'Start_IrisRecommendations' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement' 'ScoobeSystemSettingEnabled' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsConsumerFeatures' 1
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ShowSyncProviderNotifications' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Dsh' 'AllowNewsAndInterests' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ShowCopilotButton' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot' 'TurnOffWindowsCopilot' 1
-    Write-Log 'Ads, tips, widgets, Copilot policy off.'
-}
-function Disable-Tasks {
-    foreach ($task in $Tasks) { schtasks /Change /TN $task /DISABLE 2>$null | Out-Null; if ($LASTEXITCODE -eq 0) { Write-Log "Task disabled: $task" } }
 }
 function Set-ServiceMode([string]$name, [string]$mode) {
     try {
@@ -89,176 +21,183 @@ function Set-ServiceMode([string]$name, [string]$mode) {
         Write-Log "$name -> $mode"
     } catch { Write-Log "$name unchanged: $($_.Exception.Message)" }
 }
-function Enable-ServiceAuto([string]$name) {
-    try { Set-Service -Name $name -StartupType Automatic -ErrorAction Stop; Start-Service -Name $name -ErrorAction SilentlyContinue; Write-Log "$name -> automatic" } catch { Write-Log "$name not started: $($_.Exception.Message)" }
+$opts = [ordered]@{
+    apps = $false; ads = $false; tasks = $false; privacy = $false; telemetry = $false
+    search = $false; xbox = $false; gamedvr = $false; cpu = $false; idle = $false
+    hags = $false; visuals = $false; hibernate = $false; bluetooth = $false; print = $false
+    ipv6 = $false; onedrive = $false; browser = $false; updates = $false; defender = $false
 }
-function Get-PlanGuid {
+$labels = [ordered]@{
+    apps = 'Remove inbox apps (Clipchamp, News, Solitaire, Teams, Xbox overlays)'
+    ads = 'Ads, tips, widgets, Copilot button'
+    tasks = 'Feedback and compatibility scheduled tasks'
+    privacy = 'Privacy policies (advertising id, activity, location, Bing search)'
+    telemetry = 'Disable telemetry services'
+    search = 'Disable Windows Search'
+    xbox = 'Disable Xbox services'
+    gamedvr = 'Game DVR off, Game Mode on'
+    cpu = 'CPU 100% min/max on AC, core parking off'
+    idle = 'CPU idle off (hot, confirm again)'
+    hags = 'Hardware GPU scheduling on'
+    visuals = 'Visual effects set to performance'
+    hibernate = 'Hibernate off'
+    bluetooth = 'Disable Bluetooth service'
+    print = 'Disable print spooler'
+    ipv6 = 'Disable IPv6 (can break some networks)'
+    onedrive = 'Uninstall OneDrive'
+    browser = 'Install Firefox or Brave, then optional Edge uninstall'
+    updates = 'Disable Windows Update (confirm again)'
+    defender = 'Disable Defender real-time (confirm again, not recommended)'
+}
+function Show-Opts {
+    $i = 1
+    foreach ($k in $opts.Keys) {
+        $mark = $(if ($opts[$k]) { 'ON ' } else { 'off' })
+        Write-Host ("{0,2}  [{1}]  {2}" -f $i, $mark, $labels[$k])
+        $i++
+    }
+}
+function Invoke-Key([int]$n) {
+    $keys = @($opts.Keys)
+    if ($n -lt 1 -or $n -gt $keys.Count) { return }
+    $k = $keys[$n - 1]
+    $opts[$k] = -not $opts[$k]
+}
+function Set-Preset([string]$name) {
+    foreach ($k in @($opts.Keys)) { $opts[$k] = $false }
+    switch ($name) {
+        'perf' { foreach ($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals')) { $opts[$k] = $true } }
+        'game' { foreach ($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals')) { $opts[$k] = $true } }
+        'priv' { foreach ($k in @('apps','ads','tasks','privacy','telemetry','search')) { $opts[$k] = $true } }
+    }
+}
+function Remove-InboxApps {
+    $names = @('Clipchamp.Clipchamp','Microsoft.BingNews','Microsoft.BingWeather','Microsoft.BingSearch','Microsoft.GetHelp','Microsoft.Getstarted','Microsoft.MicrosoftOfficeHub','Microsoft.MicrosoftSolitaireCollection','Microsoft.MixedReality.Portal','Microsoft.People','Microsoft.Todos','Microsoft.WindowsFeedbackHub','Microsoft.WindowsMaps','Microsoft.Xbox.TCUI','Microsoft.XboxGameOverlay','Microsoft.XboxGamingOverlay','Microsoft.YourPhone','Microsoft.ZuneMusic','Microsoft.ZuneVideo','Microsoft.549981C3F5F10','Microsoft.Windows.DevHome','Microsoft.OutlookForWindows','MicrosoftTeams','MSTeams','Microsoft.GamingApp','Microsoft.Windows.Copilot')
+    foreach ($name in $names) {
+        foreach ($pkg in @(Get-AppxPackage -Name $name -AllUsers -ErrorAction SilentlyContinue)) {
+            try { Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop; Write-Log "Removed $($pkg.Name)" } catch { Write-Log "Could not remove $($pkg.Name)" }
+        }
+    }
+}
+function Disable-Tasks {
+    foreach ($task in @('\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser','\Microsoft\Windows\Customer Experience Improvement Program\Consolidator','\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip','\Microsoft\Windows\Maps\MapsUpdateTask','\Microsoft\Windows\Feedback\Siuf\DmClient','\Microsoft\Windows\Windows Error Reporting\QueueReporting')) {
+        schtasks /Change /TN $task /DISABLE 2>$null | Out-Null
+    }
+    Write-Log 'Feedback tasks disabled.'
+}
+function Set-Cpu([bool]$idleOff) {
     $ultimate = 'e9a42b02-d5df-448d-aa00-03f14749eb61'
     powercfg -duplicatescheme $ultimate 2>$null | Out-Null
-    $list = powercfg /list
-    if ($list -match $ultimate) { return $ultimate }
-    $high = '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'
-    if ($list -match $high) { return $high }
-    return $null
-}
-function Set-CpuPlan([bool]$idleOff) {
-    $guid = Get-PlanGuid
-    if (-not $guid) { Write-Log 'No Ultimate or High performance scheme.'; return }
+    $guid = $ultimate
+    if ((powercfg /list) -notmatch $ultimate) { $guid = '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c' }
     powercfg /setactive $guid | Out-Null
     powercfg /setacvalueindex $guid SUB_PROCESSOR PROCTHROTTLEMIN 100 | Out-Null
     powercfg /setacvalueindex $guid SUB_PROCESSOR PROCTHROTTLEMAX 100 | Out-Null
     powercfg /setacvalueindex $guid SUB_PROCESSOR CPMINCORES 100 | Out-Null
-    powercfg /setacvalueindex $guid SUB_PROCESSOR CPMAXCORES 100 | Out-Null
-    powercfg /setacvalueindex $guid SUB_SLEEP STANDBYIDLE 0 | Out-Null
-    powercfg /setacvalueindex $guid SUB_USB USBSELECTIVESUSPEND 0 | Out-Null
-    if ($idleOff) { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 1 | Out-Null; Write-Log 'CPU 100%, idle OFF.' }
-    else { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 0 | Out-Null; Write-Log 'CPU 100%, idle still on.' }
+    if ($idleOff) { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 1 | Out-Null; Write-Log 'Idle off.' }
     powercfg /setactive $guid | Out-Null
-}
-function Set-SharedPerf {
-    Set-Dword 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications' 'GlobalUserDisabled' 1
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy' 'LetAppsRunInBackground' 2
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' 'EnableTransparency' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarAnimations' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' 'VisualFXSetting' 2
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'NetworkThrottlingIndex' 0xffffffff
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'SystemResponsiveness' 0
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Serialize' 'StartupDelayInMSec' 0
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' 'GPU Priority' 8
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' 'Priority' 6
-    Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' 'Scheduling Category' 2
-    Set-Dword 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 1
-    Set-Dword 'HKCU:\Software\Microsoft\GameBar' 'AllowAutoGameMode' 1
-    Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2
-    Write-Log 'Game DVR off, Game Mode on, HAGS on.'
-}
-function Set-PrivacyPolicies {
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo' 'DisabledByGroupPolicy' 1
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' 'Enabled' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableActivityFeed' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'PublishUserActivities' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'UploadUserActivities' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' 'DisableLocation' 1
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'BingSearchEnabled' 0
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'CortanaConsent' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'AllowCortana' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'DisableWebSearch' 1
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableSoftLanding' 1
-    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' 'SilentInstalledAppsEnabled' 0
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync' 'DisableSettingSync' 2
-    Write-Log 'Privacy policies set: advertising id, activity history, location, Bing search, settings sync.'
+    Write-Log 'CPU plan set.'
 }
 function Install-OtherBrowser {
-    Write-Host '1 Firefox'
-    Write-Host '2 Brave'
-    Write-Host '3 Neither'
+    Write-Host '1 Firefox  2 Brave  3 skip'
     $pick = Read-Host 'Browser'
     $id = $null
-    if ($pick -eq '1') { $id = 'Mozilla.Firefox' }
-    elseif ($pick -eq '2') { $id = 'Brave.Brave' }
-    else { Write-Log 'No alternate browser requested.'; return $false }
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { Write-Log 'winget is not installed. Install a browser yourself, then run option 7.'; return $false }
-    Write-Log "winget install $id"
+    if ($pick -eq '1') { $id = 'Mozilla.Firefox' } elseif ($pick -eq '2') { $id = 'Brave.Brave' } else { return $false }
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { Write-Log 'winget missing.'; return $false }
     winget install --id $id --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -eq 0) { Write-Log "$id installed."; return $true }
-    Write-Log "winget failed for $id (exit $LASTEXITCODE)."
-    return $false
+    return ($LASTEXITCODE -eq 0)
 }
 function Uninstall-Edge {
     $root = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application'
-    if (-not (Test-Path $root)) { Write-Log 'Edge application folder not found.'; return }
     $setup = Get-ChildItem -Path $root -Recurse -Filter 'setup.exe' -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\Installer\setup.exe$' } | Select-Object -First 1
-    if (-not $setup) { Write-Log 'Edge setup.exe not found. On an EEA PC, uninstall Edge from Settings, Apps.'; return }
-    Write-Log "Edge uninstall via $($setup.FullName)"
+    if (-not $setup) { Write-Log 'Edge setup.exe not found.'; return }
     & $setup.FullName --uninstall --system-level --force-uninstall --verbose-logging
-    Write-Log 'Edge uninstall command finished. Check Settings, Apps. Widgets and some Windows links can break.'
+    Write-Log 'Edge uninstall command finished.'
 }
-function Invoke-BrowserSwap {
-    $ok = Install-OtherBrowser
-    if (-not $ok) { Write-Host 'Edge was not removed, because no alternate browser was installed.'; return }
-    $answer = Read-Host 'Uninstall Edge now? Widgets and some system web links can break. Type yes'
-    if ($answer -eq 'yes') { Uninstall-Edge } else { Write-Log 'Edge left installed.' }
-}
-function Set-PerformanceProfile([bool]$idleOff) {
-    Write-Log 'Applying PERFORMANCE.'
-    Remove-InboxApps; Disable-AdsAndTips; Disable-Tasks
-    foreach ($svc in $QuietServices) { Set-ServiceMode $svc 'Disabled' }
-    foreach ($svc in @('WSearch','XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc')) { Set-ServiceMode $svc 'Disabled' }
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 1
-    Set-SharedPerf; Set-CpuPlan $idleOff
-    Set-Content -Path $StateFile -Value $(if ($idleOff) { 'performance-idleoff' } else { 'performance' })
-}
-function Set-GamingProfile {
-    Write-Log 'Applying GAMING.'
-    Remove-InboxApps; Disable-AdsAndTips; Disable-Tasks
-    foreach ($svc in $QuietServices) { Set-ServiceMode $svc 'Manual' }
-    Set-ServiceMode 'WSearch' 'Manual'
-    foreach ($svc in @('XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc','bthserv','Audiosrv','AudioEndpointBuilder')) { Enable-ServiceAuto $svc }
-    Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 1
-    Set-SharedPerf; Set-CpuPlan $false
-    Set-Content -Path $StateFile -Value 'gaming'
-}
-function Set-PrivacyProfile {
-    Write-Log 'Applying PRIVACY.'
-    Remove-InboxApps; Disable-AdsAndTips; Disable-Tasks; Set-PrivacyPolicies
-    foreach ($svc in $QuietServices) { Set-ServiceMode $svc 'Disabled' }
-    Set-ServiceMode 'WSearch' 'Disabled'
-    Set-Content -Path $StateFile -Value 'privacy'
-    Write-Host 'Privacy policies are on. Defender and Windows Update stay.'
-    $swap = Read-Host 'Install Firefox or Brave, then optionally remove Edge? Type yes'
-    if ($swap -eq 'yes') { Invoke-BrowserSwap }
-}
-function Invoke-Detect {
-    Write-Host (powercfg /getactivescheme)
-    foreach ($svc in @('DiagTrack','SysMain','WSearch','XblGameSave','bthserv','Audiosrv','WinDefend','wuauserv')) {
-        try { $st = (Get-Service -Name $svc -ErrorAction Stop).StartType } catch { $st = 'missing' }
-        Write-Host ("{0,-16} {1}" -f $svc, $st)
+function Invoke-Apply {
+    Write-Log 'Apply started.'
+    try { Checkpoint-Computer -Description 'bare before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+    if ($opts.apps) { Remove-InboxApps }
+    if ($opts.ads) {
+        foreach ($n in @('SubscribedContent-338389Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
+        Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ShowCopilotButton' 0
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot' 'TurnOffWindowsCopilot' 1
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsConsumerFeatures' 1
+        Write-Log 'Ads and Copilot policy set.'
     }
-    $edge = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application'
-    Write-Host ("Edge folder present: $(Test-Path $edge)")
-    if (Test-Path $StateFile) { Write-Host ("Saved profile: $(Get-Content $StateFile -Raw)") }
-}
-function Invoke-FixDrift {
-    if (-not (Test-Path $StateFile)) { Write-Host 'No saved profile.'; return }
-    switch ((Get-Content $StateFile -Raw).Trim()) {
-        'gaming' { Set-GamingProfile }
-        'performance' { Set-PerformanceProfile $false }
-        'performance-idleoff' { Set-PerformanceProfile $true }
-        'privacy' { Set-PrivacyProfile }
-        default { Write-Log 'Unknown profile.' }
+    if ($opts.tasks) { Disable-Tasks }
+    if ($opts.privacy) {
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' 'AllowTelemetry' 0
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo' 'DisabledByGroupPolicy' 1
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableActivityFeed' 0
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' 'DisableLocation' 1
+        Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' 'BingSearchEnabled' 0
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' 'DisableWebSearch' 1
+        Write-Log 'Privacy policies set.'
     }
+    if ($opts.telemetry) { foreach ($s in @('DiagTrack','dmwappushservice')) { Set-ServiceMode $s 'Disabled' } }
+    if ($opts.search) { Set-ServiceMode 'WSearch' 'Disabled' }
+    if ($opts.xbox) { foreach ($s in @('XblAuthManager','XblGameSave','XboxGipSvc','XboxNetApiSvc')) { Set-ServiceMode $s 'Disabled' } }
+    if ($opts.gamedvr) {
+        Set-Dword 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled' 0
+        Set-Dword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR' 0
+        Set-Dword 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 1
+        Write-Log 'Game DVR off, Game Mode on.'
+    }
+    if ($opts.cpu -or $opts.idle) { Set-Cpu $opts.idle }
+    if ($opts.hags) { Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2; Write-Log 'HAGS on.' }
+    if ($opts.visuals) {
+        Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' 'VisualFXSetting' 2
+        Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' 'EnableTransparency' 0
+        Write-Log 'Visual effects performance.'
+    }
+    if ($opts.hibernate) { powercfg -h off | Out-Null; Write-Log 'Hibernate off.' }
+    if ($opts.bluetooth) { Set-ServiceMode 'bthserv' 'Disabled' }
+    if ($opts.print) { Set-ServiceMode 'Spooler' 'Disabled' }
+    if ($opts.ipv6) {
+        if ((Read-Host 'Disable IPv6 on all adapters? Type yes') -eq 'yes') {
+            Get-NetAdapterBinding -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue | Disable-NetAdapterBinding -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
+            Write-Log 'IPv6 binding disabled.'
+        }
+    }
+    if ($opts.onedrive) {
+        if ((Read-Host 'Uninstall OneDrive? Type yes') -eq 'yes') {
+            winget uninstall --id Microsoft.OneDrive --accept-source-agreements 2>$null
+            Write-Log 'OneDrive uninstall requested.'
+        }
+    }
+    if ($opts.browser) {
+        if (Install-OtherBrowser) {
+            if ((Read-Host 'Uninstall Edge? Type yes') -eq 'yes') { Uninstall-Edge }
+        } else { Write-Log 'Edge left installed.' }
+    }
+    if ($opts.updates) {
+        if ((Read-Host 'Disable Windows Update? Type yes') -eq 'yes') { Set-ServiceMode 'wuauserv' 'Disabled'; Write-Log 'Windows Update disabled.' }
+    }
+    if ($opts.defender) {
+        if ((Read-Host 'Disable Defender real-time? This leaves the PC open. Type yes') -eq 'yes') {
+            Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+            Write-Log 'Defender real-time disabled for this boot. Tamper Protection can turn it back on.'
+        }
+    }
+    Write-Log 'Apply finished. Restart.'
 }
 Assert-Admin
-Write-Log 'bare 2.1 started.'
+Write-Log 'bare 2.2 started.'
 while ($true) {
     Write-Host ''
-    Write-Host 'bare 2.1'
-    Write-Host '1  Performance'
-    Write-Host '2  Gaming'
-    Write-Host '3  Performance + idle off'
-    Write-Host '6  Privacy     telemetry, ads, activity, location, Bing search'
-    Write-Host '7  Browser     install Firefox or Brave, then optional Edge uninstall'
-    Write-Host '4  Scan'
-    Write-Host '5  Fix drift'
-    Write-Host '8  Restore point only'
-    Write-Host '0  Exit'
+    Write-Host 'bare 2.2  -  toggle a number, then apply'
+    Show-Opts
+    Write-Host 'p  performance preset    g  gaming preset    v  privacy preset'
+    Write-Host 'a  apply selected         0  exit'
     $choice = Read-Host 'Choose'
     switch ($choice) {
-        '1' { New-RestorePoint; Set-PerformanceProfile $false }
-        '2' { New-RestorePoint; Set-GamingProfile }
-        '3' { $a = Read-Host 'Idle off. Type yes'; if ($a -eq 'yes') { New-RestorePoint; Set-PerformanceProfile $true } }
-        '6' { New-RestorePoint; Set-PrivacyProfile }
-        '7' { Invoke-BrowserSwap }
-        '4' { Invoke-Detect }
-        '5' { Invoke-FixDrift }
-        '8' { New-RestorePoint }
+        'p' { Set-Preset 'perf' }
+        'g' { Set-Preset 'game' }
+        'v' { Set-Preset 'priv' }
+        'a' { Invoke-Apply }
         '0' { break }
-        default { Write-Host 'Unknown choice.' }
+        default { if ($choice -match '^\d+$') { Invoke-Key ([int]$choice) } }
     }
     if ($choice -eq '0') { break }
 }
-Write-Log 'bare exited.'
