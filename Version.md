@@ -1,7 +1,7 @@
 # Version
 
-bare 3.5
+bare 3.6
 
-Release: [v3.5](https://github.com/iinze0/bare/releases/tag/v3.5)
+Release: [v3.6](https://github.com/iinze0/bare/releases/tag/v3.6)
 
-Revert now also restores NTFS last-access and the NTFS cache, and clears Find My Device, clipboard, and inking policies. Apply writes `bare-last.txt` with the ticks it ran. Dry run mentions the temp and startup confirms.
+`h` prints what the three presets tick. After apply, the menu prints the start type of DiagTrack, SysMain, and WSearch.

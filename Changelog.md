@@ -1,11 +1,10 @@
 # Changelog
 
+## 3.6
+
+- `h` explains the performance, gaming, and privacy presets.
+- Apply ends by printing DiagTrack, SysMain, and WSearch, so a service that refused to disable is visible without a second scan.
+
 ## 3.5
 
-- Revert restores NTFS last-access updates and the default NTFS cache, and clears Find My Device, clipboard, and inking policies.
-- Apply writes `bare-last.txt` with the time and the ticks it ran.
-- Dry run warns about the temp and startup confirms.
-
-## 3.4
-
-- Late CPU settings are applied. Revert clears priority, overlay, Nagle, prefetch, and dynamic tick.
+- Revert restores NTFS. Apply writes bare-last.txt.

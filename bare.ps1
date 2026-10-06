@@ -1,4 +1,4 @@
-# bare 3.5
+# bare 3.6
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -164,13 +164,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.5 apply'
+  Write-Log 'bare 3.6 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.5 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.6 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -294,16 +294,18 @@ function Invoke-Apply {
   Write-Host "Log: $Log"
   Write-Host "Last run: $Last"
   Write-Host 'Restart to finish.'
+  Write-Host '--- after ---'
+  foreach ($svc in @('DiagTrack','SysMain','WSearch')) { try { Write-Host ('{0,-12} {1}' -f $svc, (Get-Service $svc -ErrorAction Stop).StartType) } catch { Write-Host "$svc missing" } }
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.5 started'
+Write-Log 'bare 3.6 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.5'
+  Write-Host 'bare 3.6'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
-  Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
+  Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   h help   0 exit'
   $choice = Read-Host 'Choose'
   switch ($choice) {
     'p' { Set-Preset 'perf' }
@@ -315,6 +317,7 @@ while ($true) {
     'c' { Invoke-Scan }
     's' { Save-Ticks }
     'l' { Load-Ticks }
+    'h' { Write-Host 'p performance: apps, ads, tasks, telemetry, search, xbox, games, cpu, gpu, visuals, mouse, sticky'; Write-Host 'g gaming: apps, ads, tasks, games, cpu, gpu, visuals, mouse, sticky, focus. Leaves Xbox, Edge, Update, Defender.'; Write-Host 'v privacy: apps, ads, tasks, privacy, telemetry, search. Camera and microphone stay.'; Write-Host 'Idle, temp, startup, IPv6, OneDrive, Edge, Update, and Defender ask for yes.' }
     '0' { break }
     default { if ($choice -match '^\d+$') { Invoke-Key ([int]$choice) } }
   }
