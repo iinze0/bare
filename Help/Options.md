@@ -1,6 +1,6 @@
 # Options
 
-Version 3.3. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 3.4. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |

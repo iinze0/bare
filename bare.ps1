@@ -1,4 +1,4 @@
-# bare 3.3
+# bare 3.4
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -7,7 +7,7 @@ function Assert-Admin { $p = New-Object Security.Principal.WindowsPrincipal([Sec
 function Set-Dword([string]$path, [string]$name, [int]$value) { if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }; New-ItemProperty -Path $path -Name $name -Value $value -PropertyType DWord -Force | Out-Null }
 function Set-ServiceMode([string]$name, [string]$mode) { try { if ($mode -eq 'Disabled') { Stop-Service -Name $name -Force -ErrorAction SilentlyContinue; Set-Service -Name $name -StartupType Disabled -ErrorAction Stop } elseif ($mode -eq 'Automatic') { Set-Service -Name $name -StartupType Automatic -ErrorAction Stop; Start-Service -Name $name -ErrorAction SilentlyContinue } else { Set-Service -Name $name -StartupType Manual -ErrorAction Stop }; Write-Log "$name -> $mode" } catch { Write-Log "$name unchanged: $($_.Exception.Message)" } }
 $opts = [ordered]@{ apps=$false; ads=$false; tasks=$false; privacy=$false; telemetry=$false; search=$false; xbox=$false; gamedvr=$false; cpu=$false; idle=$false; hags=$false; visuals=$false; mouse=$false; sticky=$false; focus=$false; temp=$false; startup=$false; hibernate=$false; bluetooth=$false; print=$false; ipv6=$false; onedrive=$false; browser=$false; updates=$false; defender=$false }
-$labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, speech, clipboard, Find My Device'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100% on AC, parking off, USB suspend off'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
+$labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, speech, clipboard, Find My Device'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100%, no parking, no throttling, NTFS cache'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
 function Show-Opts { $i=1; $on=0; foreach($k in $opts.Keys){ if($opts[$k]){ $on++ }; Write-Host ('{0,2}  [{1}]  {2}' -f $i, $(if($opts[$k]){'ON '}else{'off'}), $labels[$k]); $i++ }; Write-Host "$on on" }
 function Invoke-Key([int]$n){ $keys=@($opts.Keys); if($n -ge 1 -and $n -le $keys.Count){ $opts[$keys[$n-1]] = -not $opts[$keys[$n-1]] } }
 function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals','mouse','sticky')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals','mouse','sticky','focus')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
@@ -66,7 +66,8 @@ function Set-Cpu([bool]$idleOff) {
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' 38000000
   try { Disable-MMAgent -MemoryCompression -ErrorAction Stop; Write-Log 'Memory compression off.' } catch { Write-Log 'Memory compression unchanged.' }
   try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining unchanged.' }
-  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance.'
+  powercfg /setactive $guid | Out-Null
+  Write-Log 'CPU plan set and reactivated. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance.'
 }
 
 function Clear-UserTemp {
@@ -118,6 +119,11 @@ function Invoke-Scan {
   Write-Host "AllowTelemetry $tel"
   Write-Host "HAGS HwSchMode $hags"
   Write-Host "GameDVR_Enabled $dvr"
+  $pref = 'unset'; $prio = 'unset'
+  try { $pref = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' -Name EnablePrefetcher -ErrorAction Stop).EnablePrefetcher } catch {}
+  try { $prio = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' -Name Win32PrioritySeparation -ErrorAction Stop).Win32PrioritySeparation } catch {}
+  Write-Host "EnablePrefetcher $pref"
+  Write-Host "Win32PrioritySeparation $prio"
   Write-Host ("Edge folder: {0}" -f (Test-Path (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application')))
   if (Test-Path $TickFile) { Write-Host ("Saved ticks: {0}" -f (Get-Content $TickFile -Raw).Trim()) } else { Write-Host 'Saved ticks: none' }
 }
@@ -137,16 +143,28 @@ function Invoke-Revert {
   Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' -Name AllowTelemetry -ErrorAction SilentlyContinue
   Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' -Name AllowGameDVR -ErrorAction SilentlyContinue
   Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot' -Name TurnOffWindowsCopilot -ErrorAction SilentlyContinue
-  Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
+  Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' -Name Win32PrioritySeparation -ErrorAction SilentlyContinue
+  Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Name PowerThrottlingOff -ErrorAction SilentlyContinue
+  Remove-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' -Name OverlayTestMode -ErrorAction SilentlyContinue
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnablePrefetcher' 3
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnableSuperfetch' 3
+  try { Enable-MMAgent -MemoryCompression -ErrorAction SilentlyContinue; Enable-MMAgent -PageCombining -ErrorAction SilentlyContinue } catch {}
+  bcdedit /deletevalue disabledynamictick 2>$null | Out-Null
+  bcdedit /deletevalue useplatformtick 2>$null | Out-Null
+  Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -ErrorAction SilentlyContinue | ForEach-Object {
+    Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -ErrorAction SilentlyContinue
+  }
+  Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.3 apply'
+  Write-Log 'bare 3.4 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.3 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.4 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -271,10 +289,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.3 started'
+Write-Log 'bare 3.4 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.3'
+  Write-Host 'bare 3.4'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
