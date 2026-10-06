@@ -1,7 +1,7 @@
 # Version
 
-bare 2.8
+bare 2.9
 
-Release: [v2.8](https://github.com/iinze0/bare/releases/tag/v2.8)
+Release: [v2.9](https://github.com/iinze0/bare/releases/tag/v2.9)
 
-Mouse acceleration is written as text, which is what Windows reads. Sticky Keys shortcut off. Focus tick turns toast notifications off. Apply prints the last warnings from the log.
+The CPU tick now also turns PCI Express power saving off, sets boost mode to aggressive, turns disk idle off, turns power throttling off, and sets foreground priority separation to 38. The games tick turns Game Bar and fullscreen optimizations off. Visuals set menu delay to 0.

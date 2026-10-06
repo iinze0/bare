@@ -1,6 +1,6 @@
 # Options
 
-Version 2.8. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 2.9. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |
@@ -11,11 +11,11 @@ Version 2.8. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only p
 | 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. |
 | 6 | Disables WSearch. |
 | 7 | Disables the four Xbox services. |
-| 8 | Game DVR and capture off, Game Mode on, games GPU priority 8, network throttling index max, startup delay 0. |
-| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, standby idle 0. |
+| 8 | Game DVR, capture, and Game Bar off. Fullscreen optimizations off. Game Mode on. Games GPU priority 8. Network throttling index max. Startup delay 0. |
+| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, PCI Express power saving off, boost mode aggressive, disk idle off, power throttling off, foreground priority 38. |
 | 10 | Option 9 plus idle disable. Asks for yes. |
 | 11 | HwSchMode 2. |
-| 12 | Performance visuals, transparency off, taskbar animations off, file extensions shown. |
+| 12 | Performance visuals, transparency off, taskbar animations off, menu delay 0, full-window drag off, file extensions shown. |
 | 13 | Mouse acceleration off. MouseSpeed and both thresholds set to the text value 0. |
 | 14 | Sticky Keys, Filter Keys, and Toggle Keys shortcuts off. |
 | 15 | Toast notifications off for this user. |

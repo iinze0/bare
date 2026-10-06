@@ -1,4 +1,4 @@
-# bare 2.8
+# bare 2.9
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -36,9 +36,15 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setacvalueindex $guid SUB_PROCESSOR CPMAXCORES 100 | Out-Null
   powercfg /setacvalueindex $guid SUB_SLEEP STANDBYIDLE 0 | Out-Null
   powercfg /setacvalueindex $guid SUB_USB USBSELECTIVESUSPEND 0 | Out-Null
+  powercfg /setacvalueindex $guid SUB_PCIEXPRESS ASPM 0 | Out-Null
+  powercfg /setacvalueindex $guid SUB_PROCESSOR PERFBOOSTMODE 2 | Out-Null
+  powercfg /setacvalueindex $guid SUB_DISK DISKIDLE 0 | Out-Null
+  powercfg /setacvalueindex $guid SUB_NONE CONNECTIVITYINKB 0 | Out-Null
   if ($idleOff) { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 1 | Out-Null; Write-Log 'Idle off.' } else { powercfg /setacvalueindex $guid SUB_PROCESSOR IDLEDISABLE 0 | Out-Null }
   powercfg /setactive $guid | Out-Null
-  Write-Log 'CPU plan set.'
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' 'PowerThrottlingOff' 1
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' 'Win32PrioritySeparation' 38
+  Write-Log 'CPU plan set. Power throttling off. Foreground priority 38.'
 }
 
 function Clear-UserTemp {
@@ -112,13 +118,13 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 2.8 apply'
+  Write-Log 'bare 2.9 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
   foreach ($k in $picked) { Write-Host "  $k" }
   Save-Ticks
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 2.8 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 2.9 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -164,7 +170,10 @@ function Invoke-Apply {
     Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' 'Priority' 6
     Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' 'Scheduling Category' 2
     Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Serialize' 'StartupDelayInMSec' 0
-    Write-Log 'Game DVR off, Game Mode on, games priority raised.'
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
+    Set-Dword 'HKCU:\System\GameConfigStore' 'GameDVR_FSEBehaviorMode' 2
+    Set-Dword 'HKCU:\Software\Microsoft\GameBar' 'UseNexusForGameBarEnabled' 0
+    Write-Log 'Game DVR off, Game Bar off, fullscreen optimizations off, games priority raised.'
   }
   if ($opts.cpu -or $opts.idle) { Set-Cpu ([bool]$opts.idle) }
   if ($opts.hags) { Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2; Write-Log 'HAGS on.' }
@@ -178,7 +187,10 @@ function Invoke-Apply {
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' 'EnableTransparency' 0
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarAnimations' 0
     Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'HideFileExt' 0
-    Write-Log 'Visuals set.'
+    Set-String 'HKCU:\Control Panel\Desktop' 'MenuShowDelay' '0'
+    Set-Dword 'HKCU:\Control Panel\Desktop' 'DragFullWindows' 0
+    Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ListviewShadow' 0
+    Write-Log 'Visuals set. Menu delay 0.'
   }
   if ($opts.hibernate) { powercfg -h off | Out-Null; Write-Log 'Hibernate off.' }
   if ($opts.bluetooth) { Set-ServiceMode 'bthserv' 'Disabled' }
@@ -208,10 +220,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 2.8 started'
+Write-Log 'bare 2.9 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 2.8'
+  Write-Host 'bare 2.9'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   0 exit'
