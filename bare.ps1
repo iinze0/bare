@@ -1,4 +1,4 @@
-# bare 3.8
+# bare 3.9
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -69,10 +69,11 @@ function Set-Cpu([bool]$idleOff) {
   powercfg /setacvalueindex $guid 19cbb8fa-5279-450e-9fac-8a3a5c00066c 12bbebe6-58d6-4636-95bb-3217ef867c1a 0 | Out-Null
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control' 'SvcHostSplitThresholdInKB' 38000000
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' 'DisablePagingExecutive' 1
+  Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Power' 'CSEnabled' 0
   try { Disable-MMAgent -MemoryCompression -ErrorAction Stop; Write-Log 'Memory compression off.' } catch { Write-Log 'Memory compression unchanged.' }
   try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining unchanged.' }
   powercfg /setactive $guid | Out-Null
-  Write-Log 'CPU plan set and reactivated. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance. Kernel paging off. Boost holds longer.'
+  Write-Log 'CPU plan set and reactivated. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance. Kernel paging off. Boost holds longer. Connected standby off.'
 }
 
 function Clear-UserTemp {
@@ -150,6 +151,8 @@ function Invoke-Revert {
   Remove-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot' -Name TurnOffWindowsCopilot -ErrorAction SilentlyContinue
   Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl' -Name Win32PrioritySeparation -ErrorAction SilentlyContinue
   Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Name PowerThrottlingOff -ErrorAction SilentlyContinue
+  Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' -Name DisablePagingExecutive -ErrorAction SilentlyContinue
+  Remove-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Power' -Name CSEnabled -ErrorAction SilentlyContinue
   Remove-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' -Name OverlayTestMode -ErrorAction SilentlyContinue
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnablePrefetcher' 3
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' 'EnableSuperfetch' 3
@@ -168,7 +171,7 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.8 apply'
+  Write-Log 'bare 3.9 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
@@ -178,7 +181,7 @@ function Invoke-Apply {
   $before += (powercfg /getactivescheme)
   foreach ($svc in @('DiagTrack','SysMain','WSearch','wuauserv','WinDefend')) { try { $before += "$svc $((Get-Service $svc -ErrorAction Stop).StartType)" } catch { $before += "$svc missing" } }
   Set-Content -Path $Before -Value $before
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.8 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.9 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -307,10 +310,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.8 started'
+Write-Log 'bare 3.9 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.8'
+  Write-Host 'bare 3.9'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   s save   l load   h help   0 exit'
