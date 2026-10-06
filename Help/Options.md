@@ -1,28 +1,28 @@
 # Options
 
-The menu number matches this table. ON means it will run when you press `a`. A second `yes` is required where the Confirm column says yes.
+Version 2.4. Numbers toggle. `a` applies.
 
-| # | Name | Apply does this | Preset | Confirm |
-| --- | --- | --- | --- | --- |
-| 1 | apps | Removes these packages for all users: Clipchamp, Bing News, Bing Weather, Bing Search, Get Help, Get Started, Office hub, Solitaire, Mixed Reality Portal, People, To Do, Feedback Hub, Maps, Xbox TCUI, Xbox Game Overlay, Xbox Gaming Overlay, Phone Link, Groove Music, Movies and TV, Cortana, Dev Home, Outlook for Windows, Teams, Gaming App, Copilot app. Does not deprovision in 2.2. Store, Edge, Photos, Notepad, Calculator, Terminal stay. | p g v | no |
-| 2 | ads | Sets suggestion and silent-install content flags to 0, Copilot button to 0, TurnOffWindowsCopilot to 1, DisableWindowsConsumerFeatures to 1. | p g v | no |
-| 3 | tasks | Disables Compatibility Appraiser, CEIP Consolidator, UsbCeip, Maps update, Feedback DmClient, error reporting queue. | p g v | no |
-| 4 | privacy | AllowTelemetry 0, advertising ID off, activity feed off, location policy off, Bing search off, DisableWebSearch 1. | v | no |
-| 5 | telemetry | Disables DiagTrack and dmwappushservice. | p v | no |
-| 6 | search | Disables WSearch. | p v | no |
-| 7 | xbox | Disables XblAuthManager, XblGameSave, XboxGipSvc, XboxNetApiSvc. | p | no |
-| 8 | gamedvr | GameDVR_Enabled 0, AllowGameDVR 0, AutoGameModeEnabled 1. | p g | no |
-| 9 | cpu | Ultimate performance if present, else High performance. AC min and max 100. Core parking min cores 100. | p g | no |
-| 10 | idle | Same plan, then IDLEDISABLE 1. | none | yes |
-| 11 | hags | HwSchMode 2. Needs a restart. | p g | no |
-| 12 | visuals | VisualFXSetting 2, EnableTransparency 0. | p g | no |
-| 13 | hibernate | `powercfg -h off`. | none | no |
-| 14 | bluetooth | Disables bthserv. | none | no |
-| 15 | print | Disables Spooler. | none | no |
-| 16 | ipv6 | Disables the ms_tcpip6 binding on adapters. | none | yes |
-| 17 | onedrive | `winget uninstall --id Microsoft.OneDrive`. | none | yes |
-| 18 | browser | winget Firefox or Brave, then Edge `setup.exe --uninstall --system-level --force-uninstall` only after a second yes. | none | yes |
-| 19 | updates | Disables wuauserv. | none | yes |
-| 20 | defender | `Set-MpPreference -DisableRealtimeMonitoring $true`. Often blocked by Tamper Protection. Lasts until something turns it back on. | none | yes |
+| # | What apply does now |
+| --- | --- |
+| 1 | Removes and deprovisions Clipchamp, Bing apps, Get Help, Office hub, Solitaire, People, To Do, Maps, Xbox overlays, Phone Link, Groove, Movies and TV, Cortana, Dev Home, Outlook, Teams, Sticky Notes, Voice Recorder, Copilot. Store and Edge stay. |
+| 2 | All listed suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
+| 3 | Compatibility appraiser, ProgramDataUpdater, StartupAppTask, CEIP, Maps, feedback, disk diagnostics, error reporting, WinSAT, family safety. |
+| 4 | Telemetry policy 0, advertising id, activity feed publish and upload, location, Bing search, Cortana, settings sync. |
+| 5 | Disables DiagTrack, dmwappushservice, DoSvc, SysMain, WerSvc, PcaSvc. |
+| 6 | Disables WSearch. |
+| 7 | Disables the four Xbox services. |
+| 8 | Game DVR and capture off, Game Mode on, games GPU priority 8, network throttling index max, startup delay 0. |
+| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, standby idle 0. |
+| 10 | Option 9 plus idle disable. Asks for yes. |
+| 11 | HwSchMode 2. |
+| 12 | Performance visuals, transparency off, taskbar animations off, file extensions shown. |
+| 13 | Hibernate off. |
+| 14 | Bluetooth service disabled. |
+| 15 | Print spooler disabled. |
+| 16 | IPv6 binding off. Asks for yes. |
+| 17 | winget uninstall OneDrive. Asks for yes. |
+| 18 | Firefox or Brave, then Edge uninstall only after a second yes. |
+| 19 | wuauserv disabled. Asks for yes. |
+| 20 | Defender real-time off. Asks for yes. Tamper Protection may block it. |
 
-2.2 does not set network throttling, MMCSS game priority, or startup delay. Those were in 2.0 and 2.1 and are not in this menu.
+Presets are unchanged: `p` ticks 1, 2, 3, 5, 6, 7, 8, 9, 11, 12. `g` ticks 1, 2, 3, 8, 9, 11, 12. `v` ticks 1, 2, 3, 4, 5, 6.

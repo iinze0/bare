@@ -1,7 +1,7 @@
 # Version
 
-bare 2.3
+bare 2.4
 
-Release file: [bare.bat](bare.bat)
+Release files: `bare.bat` and `bare.ps1` in the same folder. The bat only elevates and runs the script beside it. It does not download code.
 
-Right-click `bare.bat` and run as administrator. It does not download the script. The PowerShell is embedded under the `#__BARE_PS1__` marker. Log: `%USERPROFILE%\bare-log.txt`.
+Log: `bare-log.txt` next to the script.
