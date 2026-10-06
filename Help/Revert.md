@@ -1,19 +1,15 @@
 # Revert
 
-1. Start, search Create a restore point.
-2. System Restore.
-3. Choose `bare before changes`.
-4. Restart.
+In the menu, `r` then `yes`:
 
-That rolls service startup types and registry policies back when the checkpoint exists.
+- Sets DiagTrack, delivery optimization, SysMain, Search, Xbox, Bluetooth, print, and Windows Update back to Manual.
+- Asks Defender real-time back on.
+- Switches the power plan to Balanced.
+- Turns hibernate on.
+- Removes AllowTelemetry, AllowGameDVR, and TurnOffWindowsCopilot.
 
-Per option, if you do not want a full restore:
+It does not reinstall removed Store apps. It does not reinstall Edge or OneDrive.
 
-- Services: `services.msc`, set the service to Manual or Automatic. Names are in [Options](Options.md).
-- Hibernate: `powercfg -h on`
-- IPv6: enable the Internet Protocol Version 6 binding on the adapter.
-- Edge: `winget install --id XPFFTQ037JWMHS`
-- Defender: Windows Security, Virus and threat protection, turn real-time protection on.
-- Windows Update: set wuauserv to Manual, then check for updates.
+Edge, if removed: `winget install --id XPFFTQ037JWMHS`
 
-`bare-log.txt` next to the script lists what the last apply wrote.
+A System Restore point named `bare 2.6 before changes` is created on apply when Windows accepts it.

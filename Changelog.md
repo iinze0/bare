@@ -1,12 +1,13 @@
 # Changelog
 
+## 2.6
+
+- Dry run (`d`) lists ticked changes and writes nothing.
+- Revert (`r`) sets the services this script touches back to manual, asks Defender real-time back on, switches to Balanced, turns hibernate on, and removes the telemetry, Game DVR, and Copilot policies.
+- Scan also prints AllowTelemetry, HAGS, and GameDVR_Enabled.
+- Apply refuses to run if nothing is ticked, and the menu shows how many are on.
+- Restore point name is `bare 2.6 before changes`.
+
 ## 2.5
 
-- Ticks are saved on apply to `bare-ticks.txt` and loaded on the next launch.
-- `s` saves, `l` loads, `c` scans the power plan and the services the menu changes.
-- `bare.cmd` calls `bare.bat`.
-- Release v2.5 attaches both files.
-
-## 2.4
-
-- Deeper app, ad, task, privacy, telemetry, games, and CPU passes.
+- Ticks save on apply and load on the next launch.

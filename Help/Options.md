@@ -1,6 +1,6 @@
 # Options
 
-Version 2.5. Numbers toggle. `a` applies and writes `bare-ticks.txt`.
+Version 2.6. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |
@@ -25,4 +25,4 @@ Version 2.5. Numbers toggle. `a` applies and writes `bare-ticks.txt`.
 | 19 | wuauserv disabled. Asks for yes. |
 | 20 | Defender real-time off. Asks for yes. Tamper Protection may block it. |
 
-`c` prints the active power plan and the start type of DiagTrack, SysMain, WSearch, XblGameSave, bthserv, Spooler, wuauserv, and WinDefend. It also says whether the Edge folder is present.
+`c` prints the power plan, those services, AllowTelemetry, HAGS, GameDVR_Enabled, and whether Edge is installed.
