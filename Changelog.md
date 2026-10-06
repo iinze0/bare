@@ -1,10 +1,10 @@
 # Changelog
 
+## 3.8
+
+- CPU tick: DisablePagingExecutive 1. Kernel stays in RAM. Uses more RAM.
+- CPU tick: boost decrease threshold 10 and increase time 1, so the chip stays boosted longer on AC.
+
 ## 3.7
 
-- Apply writes `bare-before.txt` first: active power plan, and DiagTrack, SysMain, WSearch, Windows Update, Defender.
-- Help text uses the real tick name `hags` instead of `gpu`.
-
-## 3.6
-
-- Preset help and a post-apply service check.
+- bare-before.txt written before apply.

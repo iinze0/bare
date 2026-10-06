@@ -1,7 +1,7 @@
 # Version
 
-bare 3.7
+bare 3.8
 
-Release: [v3.7](https://github.com/iinze0/bare/releases/tag/v3.7)
+Release: [v3.8](https://github.com/iinze0/bare/releases/tag/v3.8)
 
-Before apply, the script writes `bare-before.txt` with the active power plan and the start type of DiagTrack, SysMain, WSearch, Windows Update, and Defender. Compare it with `bare-last.txt` after a run.
+CPU tick keeps the kernel in RAM (`DisablePagingExecutive 1`) and holds boost longer (decrease threshold 10, increase time 1). This uses more RAM. It does not raise the chip past its normal boost.
