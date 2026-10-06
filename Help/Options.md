@@ -1,6 +1,6 @@
 # Options
 
-Version 2.7. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 2.8. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
 
 | # | What apply does |
 | --- | --- |
@@ -16,16 +16,18 @@ Version 2.7. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only p
 | 10 | Option 9 plus idle disable. Asks for yes. |
 | 11 | HwSchMode 2. |
 | 12 | Performance visuals, transparency off, taskbar animations off, file extensions shown. |
-| 13 | Mouse acceleration off. MouseSpeed and both thresholds 0. |
-| 14 | Deletes entries in the user Temp folder. Asks for yes. In-use files stay. |
-| 15 | Removes OneDrive, Teams, and Edge auto-launch from Run. Asks for yes. |
-| 16 | Hibernate off. |
-| 17 | Bluetooth service disabled. |
-| 18 | Print spooler disabled. |
-| 19 | IPv6 binding off. Asks for yes. |
-| 20 | winget uninstall OneDrive. Asks for yes. |
-| 21 | Firefox or Brave, then Edge uninstall only after a second yes. |
-| 22 | wuauserv disabled. Asks for yes. |
-| 23 | Defender real-time off. Asks for yes. Tamper Protection may block it. |
+| 13 | Mouse acceleration off. MouseSpeed and both thresholds set to the text value 0. |
+| 14 | Sticky Keys, Filter Keys, and Toggle Keys shortcuts off. |
+| 15 | Toast notifications off for this user. |
+| 16 | Deletes entries in the user Temp folder. Asks for yes. In-use files stay. |
+| 17 | Removes OneDrive, Teams, and Edge auto-launch from Run. Asks for yes. |
+| 18 | Hibernate off. |
+| 19 | Bluetooth service disabled. |
+| 20 | Print spooler disabled. |
+| 21 | IPv6 binding off. Asks for yes. |
+| 22 | winget uninstall OneDrive. Asks for yes. |
+| 23 | Firefox or Brave, then Edge uninstall only after a second yes. |
+| 24 | wuauserv disabled. Asks for yes. |
+| 25 | Defender real-time off. Asks for yes. Tamper Protection may block it. |
 
 `c` prints the power plan, those services, AllowTelemetry, HAGS, GameDVR_Enabled, and whether Edge is installed.

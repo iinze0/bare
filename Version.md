@@ -1,7 +1,7 @@
 # Version
 
-bare 2.7
+bare 2.8
 
-Release: [v2.7](https://github.com/iinze0/bare/releases/tag/v2.7)
+Release: [v2.8](https://github.com/iinze0/bare/releases/tag/v2.8)
 
-New ticks: mouse acceleration off, temp clean, promo startup entries. Network throttling index is written as a DWORD so it no longer fails the games pass.
+Mouse acceleration is written as text, which is what Windows reads. Sticky Keys shortcut off. Focus tick turns toast notifications off. Apply prints the last warnings from the log.

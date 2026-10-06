@@ -1,12 +1,13 @@
 # Changelog
 
+## 2.8
+
+- Mouse acceleration is stored as strings. The 2.7 DWORD write did not match the real value type.
+- Sticky Keys shortcut off. Ticked by performance and gaming.
+- Focus tick turns toast notifications off. Ticked by gaming.
+- Games pass creates the multimedia profile key before writing the throttling index.
+- Apply prints the last warning lines from the log.
+
 ## 2.7
 
-- Mouse acceleration off. Ticked by performance and gaming.
-- Temp clean, asks for yes, skips files that are in use.
-- Promo startup removal for OneDrive, Teams, and Edge auto-launch. Asks for yes. Does not touch other Run entries.
-- Games pass writes NetworkThrottlingIndex as a DWORD. The old value could fail that step.
-
-## 2.6
-
-- Dry run, revert, wider scan.
+- Mouse, temp, and promo startup ticks. DWORD fix attempt.

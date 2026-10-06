@@ -6,8 +6,8 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 
 | | |
 | --- | --- |
-| Version | 2.7 |
-| Release | [v2.7](https://github.com/iinze0/bare/releases/tag/v2.7) |
+| Version | 2.8 |
+| Release | [v2.8](https://github.com/iinze0/bare/releases/tag/v2.8) |
 | OS | Windows 10 and Windows 11 |
 | Run | Right-click `bare.bat`, run as administrator |
 | Script | `bare.ps1`, same folder as the bat |
@@ -17,7 +17,7 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 
 ## Use
 
-1. Download [v2.7](https://github.com/iinze0/bare/releases/tag/v2.7). Do not pipe it into `iex`.
+1. Download [v2.8](https://github.com/iinze0/bare/releases/tag/v2.8). Do not pipe it into `iex`.
 2. Keep `bare.bat` and `bare.ps1` in the same folder.
 3. Right-click `bare.bat` and run as administrator.
 4. Type a number to toggle that line. The menu shows how many are on.
@@ -32,8 +32,8 @@ Edge uninstall, IPv6, OneDrive, Windows Update, Defender, and idle-off ask for `
 
 | Key | Ticks |
 | --- | --- |
-| `p` | Apps, ads, tasks, telemetry, Search, Xbox, Game DVR, CPU 100%, GPU scheduling, visuals, mouse |
-| `g` | Apps, ads, tasks, Game DVR, CPU 100%, GPU scheduling, visuals, mouse. Leaves Xbox, Bluetooth, Edge, Update, and Defender alone. |
+| `p` | Apps, ads, tasks, telemetry, Search, Xbox, Game DVR, CPU 100%, GPU scheduling, visuals, mouse, sticky |
+| `g` | Apps, ads, tasks, Game DVR, CPU 100%, GPU scheduling, visuals, mouse, sticky, focus. Leaves Xbox, Bluetooth, Edge, Update, and Defender alone. |
 | `v` | Apps, ads, tasks, privacy policies, telemetry, Search |
 
 The full switch list is [Help/Options.md](Help/Options.md).
