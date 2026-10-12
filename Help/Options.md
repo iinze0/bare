@@ -1,6 +1,6 @@
 # Options
 
-Apex 3.11. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan. Menu colors ON green, off gray.
+Apex 3.12. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan. Menu colors ON green, off gray. `sf` loads the Safe preset.
 
 | # | What apply does |
 | --- | --- |
