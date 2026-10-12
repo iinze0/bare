@@ -2,6 +2,7 @@
 
 ## 3.11
 
+- Project renamed to Apex.
 - Expanded inbox app removal: added Microsoft.Windows.Photos, Microsoft.Microsoft3DViewer, Microsoft.ScreenSketch.
 - Menu uses color: green for ON, dark gray for off, cyan for the count.
 - Power plan throttle min/max now also set on DC so laptops stay consistent.
