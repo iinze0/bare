@@ -1,4 +1,4 @@
-# Apex 3.11
+# Apex 3.12
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -13,7 +13,7 @@ $opts = [ordered]@{ apps=$false; ads=$false; tasks=$false; privacy=$false; telem
 $labels = [ordered]@{ apps='Remove inbox apps and deprovision them'; ads='Ads, tips, widgets, background apps, Copilot'; tasks='Feedback, CEIP, Maps, diagnostics tasks'; privacy='Advertising id, activity, location, speech, clipboard, Find My Device'; telemetry='Telemetry, delivery optimization, SysMain, error reporting'; search='Disable Windows Search'; xbox='Disable Xbox services'; gamedvr='Game DVR off, Game Mode on, games priority'; cpu='CPU 100%, no parking, no throttling, NTFS cache'; idle='CPU idle off'; hags='Hardware GPU scheduling'; visuals='Performance visuals, animations off'; mouse='Mouse acceleration off'; sticky='Sticky Keys shortcut off'; focus='Focus assist alarms only'; temp='Clean user temp, asks first'; startup='Disable known promo startup entries, asks first'; hibernate='Hibernate off'; bluetooth='Disable Bluetooth'; print='Disable print spooler'; ipv6='Disable IPv6'; onedrive='Uninstall OneDrive'; browser='Firefox or Brave, optional Edge uninstall'; updates='Disable Windows Update'; defender='Disable Defender real-time' }
 function Show-Opts([switch]$OnOnly) { $i=1; $on=0; foreach($k in $opts.Keys){ if($opts[$k]){ $on++ }; if(-not $OnOnly -or $opts[$k]){ $status = if($opts[$k]){'ON '}else{'off'}; $color = if($opts[$k]){'Green'}else{'DarkGray'}; Write-Host ('{0,2}  [{1}]  {2}' -f $i, $status, $labels[$k]) -ForegroundColor $color }; $i++ }; Write-Host "$on on" -ForegroundColor Cyan }
 function Invoke-Key([int]$n){ $keys=@($opts.Keys); if($n -ge 1 -and $n -le $keys.Count){ $opts[$keys[$n-1]] = -not $opts[$keys[$n-1]] } }
-function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals','mouse','sticky')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals','mouse','sticky','focus')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
+function Set-Preset([string]$name){ foreach($k in @($opts.Keys)){ $opts[$k]=$false }; switch($name){ 'safe'{ foreach($k in @('ads','tasks','privacy','telemetry','visuals','mouse','sticky')){ $opts[$k]=$true } } 'perf'{ foreach($k in @('apps','ads','tasks','telemetry','search','xbox','gamedvr','cpu','hags','visuals','mouse','sticky')){ $opts[$k]=$true } } 'game'{ foreach($k in @('apps','ads','tasks','gamedvr','cpu','hags','visuals','mouse','sticky','focus')){ $opts[$k]=$true } } 'priv'{ foreach($k in @('apps','ads','tasks','privacy','telemetry','search')){ $opts[$k]=$true } } } }
 function Save-Ticks { $on = @($opts.Keys | Where-Object { $opts[$_] }); Set-Content -Path $TickFile -Value ($on -join ','); Write-Log "Saved ticks: $($on -join ', ')" }
 function Load-Ticks { if (-not (Test-Path $TickFile)) { Write-Host 'No saved ticks.'; return }; foreach($k in @($opts.Keys)){ $opts[$k]=$false }; foreach($k in ((Get-Content $TickFile -Raw) -split ',')){ $name=$k.Trim(); if($opts.Contains($name)){ $opts[$name]=$true } }; Write-Log 'Loaded saved ticks.' }
 function Remove-InboxApps {
@@ -74,7 +74,7 @@ function Set-Cpu([bool]$idleOff) {
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' 'DisablePagingExecutive' 1
   Set-Dword 'HKLM:\SYSTEM\CurrentControlSet\Control\Power' 'CSEnabled' 0
   try { Disable-MMAgent -MemoryCompression -ErrorAction Stop; Write-Log 'Memory compression off.' } catch { Write-Log 'Memory compression unchanged.' }
-  try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining unchanged.' }
+  try { Disable-MMAgent -PageCombining -ErrorAction Stop; Write-Log 'Page combining off.' } catch { Write-Log 'Page combining off.' } }
   powercfg /setactive $guid | Out-Null
   Write-Log 'CPU plan set and reactivated. Power throttling off. Foreground priority 38. NTFS cache raised. Service split raised. Hybrid policy set to performance. Kernel paging off. Boost holds longer. Connected standby off.'
 }
@@ -181,7 +181,8 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'Apex 3.11 apply'
+  Write-Log 'Apex 3.12 apply'
+  Write-Host 'Apex safety: restore point will be attempted. High-risk items still require yes.'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
@@ -191,7 +192,7 @@ function Invoke-Apply {
   $before += (powercfg /getactivescheme)
   foreach ($svc in @('DiagTrack','SysMain','WSearch','wuauserv','WinDefend')) { try { $before += "$svc $((Get-Service $svc -ErrorAction Stop).StartType)" } catch { $before += "$svc missing" } }
   Set-Content -Path $Before -Value $before
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'Apex 3.11 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'Apex 3.12 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -320,15 +321,16 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'Apex 3.11 started'
+Write-Log 'Apex 3.12 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'Apex 3.11'
+  Write-Host 'Apex 3.12'
   Show-Opts
-  Write-Host 'p performance   g gaming   v privacy'
+  Write-Host 'sf safe   p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   w report   f on-only   n clear   s save   l load   h help   0 exit'
   $choice = Read-Host 'Choose'
   switch ($choice) {
+    'sf' { Set-Preset 'safe' }
     'p' { Set-Preset 'perf' }
     'g' { Set-Preset 'game' }
     'v' { Set-Preset 'priv' }
@@ -338,7 +340,7 @@ while ($true) {
     'c' { Invoke-Scan }
     's' { Save-Ticks }
     'l' { Load-Ticks }
-    'h' { Write-Host 'p performance: apps, ads, tasks, telemetry, search, xbox, games, cpu, hags, visuals, mouse, sticky'; Write-Host 'g gaming: apps, ads, tasks, games, cpu, hags, visuals, mouse, sticky, focus. Leaves Xbox, Edge, Update, Defender.'; Write-Host 'v privacy: apps, ads, tasks, privacy, telemetry, search. Camera and microphone stay.'; Write-Host 'Idle, temp, startup, IPv6, OneDrive, Edge, Update, and Defender ask for yes.' }
+    'h' { Write-Host 'sf safe: ads, tasks, privacy, telemetry, visuals, mouse, sticky (low risk)'; Write-Host 'p performance: apps, ads, tasks, telemetry, search, xbox, games, cpu, hags, visuals, mouse, sticky'; Write-Host 'g gaming: apps, ads, tasks, games, cpu, hags, visuals, mouse, sticky, focus. Leaves Xbox, Edge, Update, Defender.'; Write-Host 'v privacy: apps, ads, tasks, privacy, telemetry, search. Camera and microphone stay.'; Write-Host 'Idle, temp, startup, IPv6, OneDrive, Edge, Update, and Defender ask for yes.' }
     'w' { Write-Report }
     'f' { Show-Opts -OnOnly }
     'n' { foreach($k in @($opts.Keys)){ $opts[$k]=$false }; Write-Host 'Cleared.' }
