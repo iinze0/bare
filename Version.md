@@ -1,6 +1,6 @@
 # Version
 
-bare 3.11
+Apex 3.11
 
 Release: [v3.11](https://github.com/iinze0/bare/releases/tag/v3.11)
 
