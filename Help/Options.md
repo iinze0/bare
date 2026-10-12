@@ -1,10 +1,10 @@
 # Options
 
-Version 3.8. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan.
+Version 3.11. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only prints the plan. Menu colors ON green, off gray.
 
 | # | What apply does |
 | --- | --- |
-| 1 | Removes and deprovisions Clipchamp, Bing apps, Get Help, Office hub, Solitaire, People, To Do, Maps, Xbox overlays, Phone Link, Groove, Movies and TV, Cortana, Dev Home, Outlook, Teams, Sticky Notes, Voice Recorder, Copilot. Store and Edge stay. |
+| 1 | Removes and deprovisions Clipchamp, Bing apps, Get Help, Office hub, Solitaire, People, To Do, Maps, Xbox overlays, Phone Link, Groove, Movies and TV, Cortana, Dev Home, Outlook, Teams, Sticky Notes, Voice Recorder, Copilot, Photos, 3D Viewer, Screen Sketch. Store and Edge stay. |
 | 2 | Suggestion flags, Start recommendations, widgets news, Copilot button and policy, background Store apps blocked. |
 | 3 | Compatibility appraiser, ProgramDataUpdater, StartupAppTask, CEIP, Maps, feedback, disk diagnostics, error reporting, WinSAT, family safety. |
 | 4 | Telemetry 0, tailored experiences, feedback prompts, advertising id, activity feed and upload, location, Find My Device, clipboard history, cross-device clipboard, inking and typing collection, online speech, Bing and cloud search, search highlights, settings sync, app account-info access. Camera and microphone stay. |
@@ -12,7 +12,7 @@ Version 3.8. Numbers toggle. `a` applies and writes `bare-ticks.txt`. `d` only p
 | 6 | Disables WSearch. |
 | 7 | Disables the four Xbox services. |
 | 8 | Game DVR, capture, and Game Bar off. Fullscreen optimizations off. Game Mode on. Games GPU priority 8. Network throttling index max. Startup delay 0. Nagle off on each interface. |
-| 9 | Ultimate or High performance. AC min/max 100, parking min/max 100, USB selective suspend off, PCI Express power saving off, boost mode aggressive, disk idle off, power throttling off, foreground priority 38, NTFS last-access off, NTFS cache raised, multimedia responsiveness 0, hybrid policy on performance cores, service split raised, memory compression off, boost policy 100, wireless adapter power saving off, kernel stays in RAM, boost holds longer. |
+| 9 | Ultimate or High performance. AC and DC throttle min/max 100, parking min/max 100, USB selective suspend off, PCI Express power saving off, boost mode aggressive, disk idle off, power throttling off, foreground priority 38, NTFS last-access off, NTFS cache raised, multimedia responsiveness 0, hybrid policy on performance cores, service split raised, memory compression off, boost policy 100, wireless adapter power saving off, kernel stays in RAM, boost holds longer. Connected standby off. |
 | 10 | Option 9 plus idle disable. Can also disable dynamic tick. Asks for yes. Needs a reboot. |
 | 11 | HwSchMode 2. Multiplane overlay off. |
 | 12 | Performance visuals, transparency off, taskbar animations off, window animations off, menu delay 0, full-window drag off, file extensions shown. |
