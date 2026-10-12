@@ -1,7 +1,7 @@
 # Version
 
-Apex 3.11
+Apex 3.12
 
-Release: [v3.11](https://github.com/iinze0/bare/releases/tag/v3.11)
+Release: [v3.12](https://github.com/iinze0/bare/releases/tag/v3.12)
 
-Expanded app list (Photos, 3D Viewer, Screen Sketch). Colored menu. DC power settings for throttle. `f` shows only ticked lines. `n` clears every tick. `w` writes `bare-report.txt` with the power plan, nine services, and the current ticks. Nothing is changed by those three keys.
+Safe preset (`sf`), stronger apply safety note, colored menu, expanded app list, DC power settings. `f` shows only ticked lines. `n` clears every tick. `w` writes `bare-report.txt`.
