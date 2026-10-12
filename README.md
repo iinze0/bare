@@ -6,8 +6,8 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 
 | | |
 | --- | --- |
-| Version | 3.11 |
-| Release | [v3.11](https://github.com/iinze0/bare/releases/tag/v3.11) |
+| Version | 3.12 |
+| Release | [v3.12](https://github.com/iinze0/bare/releases/tag/v3.12) |
 | OS | Windows 10 and Windows 11 |
 | Run | Right-click `bare.bat`, run as administrator |
 | Script | `bare.ps1` (Apex core), same folder as the bat |
@@ -17,11 +17,11 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 
 ## Use
 
-1. Download [v3.11](https://github.com/iinze0/bare/releases/tag/v3.11). Do not pipe it into `iex`.
+1. Download [v3.12](https://github.com/iinze0/bare/releases/tag/v3.12). Do not pipe it into `iex`.
 2. Keep `bare.bat` and `bare.ps1` in the same folder.
 3. Right-click `bare.bat` and run as administrator.
 4. Type a number to toggle that line. The menu shows how many are on (green for ON).
-5. `p` fills performance, `g` fills gaming, `v` fills privacy. Presets only tick boxes.
+5. `sf` fills Safe (low risk), `p` performance, `g` gaming, `v` privacy. Presets only tick boxes.
 6. `d` prints what would run and writes nothing.
 7. `a` applies and saves the ticks. Restart.
 8. `c` scans. `w` writes a report. `f` shows only ticked lines. `n` clears ticks. `s` saves. `l` loads. `h` explains the presets. `r` reverts services and policies. It does not reinstall removed apps.
@@ -32,6 +32,7 @@ Edge uninstall, IPv6, OneDrive, Windows Update, Defender, and idle-off ask for `
 
 | Key | Ticks |
 | --- | --- |
+| `sf` | Safe: ads, tasks, privacy, telemetry, visuals, mouse, sticky (low risk) |
 | `p` | Apps, ads, tasks, telemetry, Search, Xbox, Game DVR, CPU 100%, GPU scheduling, visuals, mouse, sticky |
 | `g` | Apps, ads, tasks, Game DVR, CPU 100%, GPU scheduling, visuals, mouse, sticky, focus. Leaves Xbox, Bluetooth, Edge, Update, and Defender alone. |
 | `v` | Apps, ads, tasks, privacy policies, telemetry, Search. Does not change camera or microphone. |
