@@ -1,4 +1,4 @@
-# bare 3.11
+# Apex 3.11
 $ErrorActionPreference = 'Continue'
 $Log = Join-Path $PSScriptRoot 'bare-log.txt'
 $TickFile = Join-Path $PSScriptRoot 'bare-ticks.txt'
@@ -181,7 +181,7 @@ function Invoke-Revert {
   Write-Log 'Revert finished. Restart. Store apps stay removed. Edge stays removed if you uninstalled it. Nagle, priority, overlay, prefetch, and dynamic tick were cleared.'
 }
 function Invoke-Apply {
-  Write-Log 'bare 3.11 apply'
+  Write-Log 'Apex 3.11 apply'
   $picked = @($opts.Keys | Where-Object { $opts[$_] })
   if ($picked.Count -eq 0) { Write-Host 'Nothing ticked.'; return }
   Write-Host 'Selected:'
@@ -191,7 +191,7 @@ function Invoke-Apply {
   $before += (powercfg /getactivescheme)
   foreach ($svc in @('DiagTrack','SysMain','WSearch','wuauserv','WinDefend')) { try { $before += "$svc $((Get-Service $svc -ErrorAction Stop).StartType)" } catch { $before += "$svc missing" } }
   Set-Content -Path $Before -Value $before
-  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'bare 3.11 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
+  try { Enable-ComputerRestore -Drive 'C:\' -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'Apex 3.11 before changes' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop; Write-Log 'Restore point created.' } catch { Write-Log 'Restore point skipped.' }
   if ($opts.apps) { Remove-InboxApps }
   if ($opts.ads) {
     foreach ($n in @('SubscribedContent-338389Enabled','SubscribedContent-310093Enabled','SubscribedContent-338388Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled','SubscribedContent-353696Enabled','SilentInstalledAppsEnabled','SystemPaneSuggestionsEnabled','SoftLandingEnabled')) { Set-Dword 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' $n 0 }
@@ -320,10 +320,10 @@ function Invoke-Apply {
 }
 Assert-Admin
 if (Test-Path $TickFile) { Load-Ticks }
-Write-Log 'bare 3.11 started'
+Write-Log 'Apex 3.11 started'
 while ($true) {
   Write-Host ''
-  Write-Host 'bare 3.11'
+  Write-Host 'Apex 3.11'
   Show-Opts
   Write-Host 'p performance   g gaming   v privacy'
   Write-Host 'a apply   d dry run   r revert   c scan   w report   f on-only   n clear   s save   l load   h help   0 exit'
