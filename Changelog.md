@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.12
+
+- Added `sf` Safe preset (ads, tasks, privacy, telemetry, visuals, mouse, sticky — low risk).
+- Stronger safety note on apply: restore point attempted, high-risk items still require yes.
+- Version display updated to Apex 3.12.
+
 ## 3.11
 
 - Project renamed to Apex.
