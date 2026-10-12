@@ -1,6 +1,6 @@
-# bare
+# Apex
 
-Windows pick-list for debloat and performance. You tick what you want. Nothing changes until you apply.
+Windows optimization tool. Tiered approach: you choose Safe, Advanced, or Extreme. Nothing changes until you apply.
 
 Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or QuakedK.
 
@@ -10,7 +10,7 @@ Made by [iinze0](https://github.com/iinze0). MIT. Not affiliated with Talon or Q
 | Release | [v3.11](https://github.com/iinze0/bare/releases/tag/v3.11) |
 | OS | Windows 10 and Windows 11 |
 | Run | Right-click `bare.bat`, run as administrator |
-| Script | `bare.ps1`, same folder as the bat |
+| Script | `bare.ps1` (Apex core), same folder as the bat |
 | Saved ticks | `bare-ticks.txt`, written on apply |
 | Log | `bare-log.txt` next to the script |
 | Network | None, unless you tick OneDrive or the browser swap |
@@ -48,4 +48,4 @@ The full switch list is [Help/Options.md](Help/Options.md).
 
 ## Trust
 
-`bare.ps1` is the whole program. The bat only elevates and runs that file. It does not download the script. winget runs only if you tick OneDrive or the browser swap.
+`bare.ps1` is the Apex core. The bat only elevates and runs that file. It does not download the script. winget runs only if you tick OneDrive or the browser swap.
