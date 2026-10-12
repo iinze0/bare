@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.11
+
+- Expanded inbox app removal: added Microsoft.Windows.Photos, Microsoft.Microsoft3DViewer, Microsoft.ScreenSketch.
+- Menu uses color: green for ON, dark gray for off, cyan for the count.
+- Power plan throttle min/max now also set on DC so laptops stay consistent.
+
 ## 3.10
 
 - `f` prints only the lines that are on.
